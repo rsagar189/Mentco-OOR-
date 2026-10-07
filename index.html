@@ -488,11 +488,11 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 // ★★★ PUT YOUR POWER AUTOMATE FLOW URL BETWEEN THE QUOTES ON THE NEXT LINE (the ONLY place to edit) ★★★
 const FLOW_URL = 'PASTE_YOUR_POWER_AUTOMATE_URL_HERE';
 
-// ── Switches. Leave as they are until docs/FLOW_UPGRADE.md tells you to change them. ──
-const FLOW_QUERY  = false;  // true once the flow understands the "query" setting (FLOW_UPGRADE step 1)
-const USE_COLUMNS = false;  // true once the search columns exist and the flow writes them (FLOW_UPGRADE step 2)
+// ── Switches. Both are ON for the upgraded flow + SharePoint columns (docs/FLOW_UPGRADE.md). ──
+const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLOW_UPGRADE step 1). Set false only if you use an old copy of the flow.
+const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 12;
 
 let SP_ENABLED=true;

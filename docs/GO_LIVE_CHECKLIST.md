@@ -26,8 +26,9 @@ Tick each box. "(me)" items are already done in the app; the rest are yours. Det
 - [x] Automated tests: `tests/uat/` (re-run before every update)
 
 ## C. Scale set-up (FLOW_UPGRADE.md)
-- [ ] Step 1 done, `FLOW_QUERY = true`, checked
-- [ ] Step 2: columns added, indexed, flow updated, `USE_COLUMNS = true`, **Rebuild search columns** run, checked
+- [x] Step 1 done and tested on the real flow (`FLOW_QUERY = true`)
+- [x] Step 2 done and tested on the real flow: columns added, flow updated, `USE_COLUMNS = true` (real-system UAT 89/89, window test 11/11)
+- [ ] Press **Rebuild search columns** once after real orders exist from before the upgrade (Master Data → Dropdown lists)
 - [ ] Step 3: session clean-up flow and weekly backup flow running
 
 ## D. Hosting
