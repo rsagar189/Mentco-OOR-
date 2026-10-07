@@ -490,6 +490,10 @@ const FLOW_URL = 'PASTE_YOUR_POWER_AUTOMATE_URL_HERE';
 
 let SP_ENABLED=true;
 const SESSION={token:null};
+// Keep the sign-in across page refreshes for this browser tab only (cleared when the tab is closed or you sign out)
+function saveSession(){try{sessionStorage.setItem('pom_sess',JSON.stringify({token:SESSION.token,user:S.user}));}catch{}}
+function clearSession(){try{sessionStorage.removeItem('pom_sess');}catch{}}
+function loadSavedSession(){try{const r=JSON.parse(sessionStorage.getItem('pom_sess')||'null');return r&&r.token&&r.user?r:null;}catch{return null;}}
 
 // Send a command to the Power Automate flow
 async function flowCall(action, listName, payload={}){
@@ -502,7 +506,7 @@ async function flowCall(action, listName, payload={}){
     body:JSON.stringify({action, listName, token:SESSION.token, ...payload})
   });
   if(res.status===401&&action!=='login'){
-    SESSION.token=null;S.user=null;S.page='login';S.loginMsg='Your session expired. Please sign in again.';render();
+    SESSION.token=null;S.user=null;clearSession();S.page='login';S.loginMsg='Your session expired. Please sign in again.';render();
     throw new Error('Session expired');
   }
   if(!res.ok){
@@ -1090,12 +1094,12 @@ function bindLogin(){
     try{
       const r=await flowCall('login','',{email:em.toLowerCase(),passHash:await hashPw(em,pw)});
       if(!r||!r.token)throw new Error('Invalid email or password.');
-      SESSION.token=r.token;S.user=r.user;
+      SESSION.token=r.token;S.user=r.user;saveSession();
       showLoadingScreen('Loading your data…');
       await spLoadAll();
       S.page='dashboard';render();
     }catch(e){
-      SESSION.token=null;S.user=null;S.page='login';render();
+      SESSION.token=null;S.user=null;clearSession();S.page='login';render();
       const el=document.getElementById('lerr');el.textContent=/invalid|401|403|unauthor/i.test(e.message)?'Invalid email or password.':'Sign-in failed: '+e.message;el.style.display='block';
     }
   };
@@ -2652,7 +2656,7 @@ function bindModal(){document.getElementById('modalCancel').onclick=()=>{S.modal
 function collectOrderForm(){const o=cloneObj(S.editing||{lines:[],consignment:false});document.querySelectorAll('[data-f]').forEach(el=>{const f=el.dataset.f;if(!f)return;let val=el.type==='checkbox'?el.checked:el.tagName==='TEXTAREA'?el.value:el.value;if(f.startsWith('lines.')){const pts=f.split('.');const idx=parseInt(pts[1]);const sub=pts[2];while(o.lines.length<=idx)o.lines.push(emptyLine(o.lines.length+1));const numF=['lineNo','poQty','delivered','inTransit','usRate','indiaRate','inTransitDays','shortCloseQty'];o.lines[idx][sub]=numF.includes(sub)?parseFloat(val)||0:val;}else o[f]=val;});return o;}
 function collectShipmentForm(){const sh=cloneObj(S.editingShipment||{lines:[],kanban:false});document.querySelectorAll('[data-sf]').forEach(el=>{const f=el.dataset.sf;if(!f)return;let val=el.type==='checkbox'?el.checked:el.value;if(f.startsWith('slines.')){const pts=f.split('.');const idx=parseInt(pts[1]);const sub=pts[2];while(sh.lines.length<=idx)sh.lines.push(emptyShipLine(sh.lines.length+1));if(sub==='shippedQty')sh.lines[idx][sub]=parseFloat(val)||0;else if(sub==='orderLineNo')sh.lines[idx][sub]=val===''?null:parseInt(val);else sh.lines[idx][sub]=val;}else sh[f]=val;});return sh;}
 function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEventListener('click',()=>{const pg=el.dataset.nav;if(pg==='new-order')S.editing={lines:[emptyLine(1)],consignment:false,orderDate:today()};if(pg==='new-shipment')S.editingShipment={lines:[emptyShipLine(1)],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.page=pg;render();});});
-  document.getElementById('logoutBtn')?.addEventListener('click',()=>{if(SP_ENABLED&&SESSION.token)flowCall('logout','').catch(()=>{});SESSION.token=null;S.user=null;S.page='login';S.loginMsg='';S.orders=[];S.shipments=[];S.auditLog=[];render();});
+  document.getElementById('logoutBtn')?.addEventListener('click',()=>{if(SP_ENABLED&&SESSION.token)flowCall('logout','').catch(()=>{});SESSION.token=null;S.user=null;clearSession();S.page='login';S.loginMsg='';S.orders=[];S.shipments=[];S.auditLog=[];render();});
   document.getElementById('cancelOrderBtn')?.addEventListener('click',()=>{
     const id=parseInt(document.getElementById('cancelOrderBtn').dataset.id);
     const ord=S.orders.find(o=>o.id===id);
@@ -2865,7 +2869,15 @@ async function initApp(){
     // No SharePoint — run with sample data
     syncShipmentsToOrders();
   }
-  // With SharePoint on, data is loaded after sign-in (bindLogin)
+  // With SharePoint on, data is loaded after sign-in (bindLogin) — or right away if this tab is still signed in
+  const saved=SP_ENABLED?loadSavedSession():null;
+  if(saved){
+    SESSION.token=saved.token;S.user=saved.user;
+    showLoadingScreen('Loading your data…');
+    try{await spLoadAll();S.page='dashboard';render();}
+    catch(e){ if(S.page!=='login'){SESSION.token=null;S.user=null;clearSession();S.page='login';S.loginMsg='Please sign in again.';render();} }
+    return;
+  }
   render();
 }
 initApp();
