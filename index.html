@@ -488,10 +488,48 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 // ★★★ PUT YOUR POWER AUTOMATE FLOW URL BETWEEN THE QUOTES ON THE NEXT LINE (the ONLY place to edit) ★★★
 const FLOW_URL = 'PASTE_YOUR_POWER_AUTOMATE_URL_HERE';
 
+// ── Switches. Leave as they are until docs/FLOW_UPGRADE.md tells you to change them. ──
+const FLOW_QUERY  = false;  // true once the flow understands the "query" setting (FLOW_UPGRADE step 1)
+const USE_COLUMNS = false;  // true once the search columns exist and the flow writes them (FLOW_UPGRADE step 2)
+const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
+const APP_VERSION = '1.1.0';
+const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 12;
+
 let SP_ENABLED=true;
 const SESSION={token:null};
 // Keep the sign-in across page refreshes for this browser tab only (cleared when the tab is closed or you sign out)
 function saveSession(){try{sessionStorage.setItem('pom_sess',JSON.stringify({token:SESSION.token,user:S.user}));}catch{}}
+// ── Background saves: never fail silently ──
+const SAVE={pending:0,failed:[]};
+function persist(fn,desc){
+  SAVE.pending++;
+  return Promise.resolve().then(fn).catch(e=>{
+    SAVE.failed.push({fn,desc,msg:String((e&&e.message)||e),rec:e&&e.rec,conflict:!!(e&&e.conflict)});
+    console.error('SAVE FAILED:',desc,e);
+  }).finally(()=>{SAVE.pending--;renderSaveBanner();});
+}
+function renderSaveBanner(){
+  let b=document.getElementById('saveBanner');
+  if(!SAVE.failed.length){if(b)b.remove();return;}
+  if(!b){b=document.createElement('div');b.id='saveBanner';b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#B91C1C;color:#fff;padding:10px 16px;font:500 13px Inter,sans-serif;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.3)';document.body.appendChild(b);}
+  const f=SAVE.failed,conf=f.some(x=>x.conflict),exp=f.some(x=>/Session expired/.test(x.msg));
+  const bt='style="background:#fff;color:#B91C1C;border:none;border-radius:6px;padding:5px 12px;font:600 12px Inter,sans-serif;cursor:pointer"';
+  b.innerHTML=`<span><b>${f.length} change${f.length>1?'s':''} NOT saved</b> (${esc(f.map(x=>x.desc).slice(0,3).join(', '))}${f.length>3?'…':''}). ${conf?'Someone else changed the same record.':exp?'Your sign-in expired — sign in again, then press Retry.':'Check the connection, then press Retry.'}</span><button id="sbRetry" ${bt}>Retry</button>${conf?`<button id="sbOver" ${bt}>Overwrite with my version</button><button id="sbReload" ${bt}>Reload latest data</button>`:''}<button id="sbDismiss" ${bt}>Dismiss</button>`;
+  const retry=()=>{const items=SAVE.failed.splice(0);renderSaveBanner();items.forEach(x=>persist(x.fn,x.desc));};
+  document.getElementById('sbRetry').onclick=retry;
+  document.getElementById('sbDismiss').onclick=()=>{SAVE.failed.length=0;renderSaveBanner();};
+  const o=document.getElementById('sbOver');if(o)o.onclick=()=>{SAVE.failed.forEach(x=>{if(x.rec)x.rec._forceSave=true;});retry();};
+  const r=document.getElementById('sbReload');if(r)r.onclick=()=>{SAVE.failed.length=0;location.reload();};
+}
+window.addEventListener('beforeunload',e=>{if(SAVE.pending>0||SAVE.failed.length){e.preventDefault();e.returnValue='';}});
+function notice(msg,kind){
+  let n=document.getElementById('noticeBar');if(n)n.remove();
+  n=document.createElement('div');n.id='noticeBar';
+  const bg=kind==='warn'?'#FEF3C7;color:#92400E':'#DBEAFE;color:#1E3A8A';
+  n.style.cssText=`position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:99998;background:${bg};padding:9px 14px;border-radius:8px;font:500 12px Inter,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.2);max-width:90%;display:flex;gap:10px;align-items:center`;
+  n.innerHTML=`<span>${esc(msg)}</span><button style="border:none;background:transparent;cursor:pointer;font-size:14px;color:inherit">✕</button>`;
+  n.querySelector('button').onclick=()=>n.remove();document.body.appendChild(n);
+}
 function clearSession(){try{sessionStorage.removeItem('pom_sess');}catch{}}
 function loadSavedSession(){try{const r=JSON.parse(sessionStorage.getItem('pom_sess')||'null');return r&&r.token&&r.user?r:null;}catch{return null;}}
 
@@ -561,71 +599,166 @@ function spDeserialize(item){
 }
 
 // ══════════════════════════════════════════════════════════════
-// LOAD ALL DATA FROM SHAREPOINT
+// LOAD DATA FROM SHAREPOINT  (all pages; never silently cut off)
 // ══════════════════════════════════════════════════════════════
+const rowId=r=>r.ID??r.Id;
+const dtq=(f,op,d)=>`${f} ${op} datetime'${d}T00:00:00Z'`;
+const isoDay=d=>String(d||'').slice(0,10);
+const validDay=d=>/^\d{4}-\d{2}-\d{2}/.test(String(d||''));
+function cutoffISO(months){const d=new Date();d.setMonth(d.getMonth()-months);return d.toISOString().slice(0,10);}
+function addDaysISO(iso,n){const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function mergeRows(a,b){const seen=new Set(a.map(rowId));b.forEach(r=>{if(!seen.has(rowId(r))){seen.add(rowId(r));a.push(r);}});return a;}
+const rowToRec=i=>({...spDeserialize(i),_spId:rowId(i),_colStatus:i.Status});
+// Read a whole list, page by page (by SharePoint Id). With the old flow (no "query") it reads once and warns if it hit the 5,000 limit.
+async function spFetchAll(list,filter){
+  const out=[],seen=new Set();let after=0;
+  for(let page=0;page<500;page++){
+    let rows;
+    if(FLOW_QUERY){
+      rows=await flowCall('getItems',list,{query:`$top=${PAGE_SIZE}&$orderby=Id&$filter=Id gt ${after}${filter?' and ('+filter+')':''}`});
+    } else {
+      rows=await flowCall('getItems',list);
+      if(rows&&rows.length>=5000)(S.loadWarnings=S.loadWarnings||[]).push(list);
+    }
+    rows=rows||[];let added=0,maxId=after;
+    for(const r of rows){const id=rowId(r);if(id==null||seen.has(id))continue;seen.add(id);out.push(r);added++;if(id>maxId)maxId=id;}
+    if(!FLOW_QUERY||added===0||rows.length<PAGE_SIZE)break;
+    after=maxId;
+  }
+  return out;
+}
+// Newest rows first (used for the audit log)
+async function spFetchLatest(list,n,beforeId){
+  let rows;
+  if(FLOW_QUERY){rows=await flowCall('getItems',list,{query:`$top=${n}&$orderby=Id desc${beforeId?`&$filter=Id lt ${beforeId}`:''}`});}
+  else{rows=await flowCall('getItems',list)||[];rows=rows.filter(r=>!beforeId||rowId(r)<beforeId).sort((a,b)=>rowId(b)-rowId(a)).slice(0,n);}
+  return rows||[];
+}
+const fixRates=o=>(o.lines||[]).forEach(l=>{l.usRate=l.usRate||0;l.indiaRate=l.indiaRate||0;});
+function applyFinance(finRows){
+  (finRows||[]).forEach(i=>{
+    const f=spDeserialize(i);if(!f)return;
+    const o=S.orders.find(x=>x.id===f.id);if(!o)return;
+    o._finSpId=rowId(i);
+    (f.rates||[]).forEach((r,idx)=>{if(o.lines[idx]){o.lines[idx].usRate=r.us||0;o.lines[idx].indiaRate=r.in||0;}});
+  });
+}
 async function spLoadAll(){
   // Real data comes from SharePoint — drop the built-in demo records
   S.orders=[];S.shipments=[];S.customers=[];S.parts=[];S.auditLog=[];
   S.nextOrderId=1;S.nextShipId=1;S.nextCustId=1;S.nextPartId=1;S.nextAuditId=1;
-  // Load orders
-  const orderItems=await flowCall('getItems',SP_LISTS.Orders);
-  if(orderItems&&orderItems.length>0){
-    const orders=orderItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
-    orders.forEach(o=>(o.lines||[]).forEach(l=>{l.usRate=l.usRate||0;l.indiaRate=l.indiaRate||0;}));
-    if(orders.length>0){S.orders=orders;S.nextOrderId=Math.max(...orders.map(o=>o.id||0))+1;}
+  S.loadWarnings=[];S.auditMore=true;S.window={from:null,full:!USE_COLUMNS};
+  const cut=cutoffISO(HISTORY_MONTHS),win=USE_COLUMNS;
+  const shipCut=addDaysISO(cut,-30);
+  // Everything that does not depend on anything else is requested at the same time
+  const [openRows,recentRows,custRows,partRows,userRows,auditRows,setRows,shipRows0,finRows0]=await Promise.all([
+    spFetchAll(SP_LISTS.Orders,win?"Status eq 'Open'":''),
+    win?spFetchAll(SP_LISTS.Orders,dtq('OrderDate','ge',cut)):Promise.resolve([]),
+    spFetchAll(SP_LISTS.Customers,''),
+    spFetchAll(SP_LISTS.Parts,''),
+    isAdmin()?spFetchAll(SP_LISTS.Users,''):Promise.resolve([]),
+    spFetchLatest(SP_LISTS.AuditLog,AUDIT_PAGE),
+    spFetchAll(SP_LISTS.AppState,''),
+    spFetchAll(SP_LISTS.Shipments,win?dtq('ShipDate','ge',shipCut):''),
+    canFin()?spFetchAll(SP_LISTS.Finance,win?dtq('OrderDate','ge',cut):''):Promise.resolve([])
+  ]);
+  const orders=mergeRows(openRows,recentRows).map(rowToRec).filter(o=>o.id!==undefined);
+  orders.forEach(fixRates);
+  S.orders=orders;if(orders.length)S.nextOrderId=Math.max(...orders.map(o=>o.id||0))+1;
+  let shipRows=shipRows0,finRows=finRows0;
+  if(win){
+    S.window={from:cut,full:false};  // orders are complete from `cut`
+    // Old orders that are still open need their shipments / rates too: read further back only if there are any
+    const ds=orders.map(o=>isoDay(o.orderDate)).filter(validDay).sort();
+    if(ds[0]&&ds[0]<cut){
+      const [moreS,moreF]=await Promise.all([
+        spFetchAll(SP_LISTS.Shipments,`${dtq('ShipDate','ge',addDaysISO(ds[0],-30))} and ${dtq('ShipDate','lt',shipCut)}`),
+        canFin()?spFetchAll(SP_LISTS.Finance,`${dtq('OrderDate','ge',ds[0])} and ${dtq('OrderDate','lt',cut)}`):Promise.resolve([])
+      ]);
+      shipRows=mergeRows(shipRows.slice(),moreS);finRows=mergeRows(finRows.slice(),moreF);
+    }
   }
-  // Load shipments
-  const shipItems=await flowCall('getItems',SP_LISTS.Shipments);
-  if(shipItems&&shipItems.length>0){
-    const ships=shipItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
-    if(ships.length>0){S.shipments=ships;S.nextShipId=Math.max(...ships.map(s=>s.id||0))+1;}
-  }
-  // Load customers
-  const custItems=await flowCall('getItems',SP_LISTS.Customers);
-  if(custItems&&custItems.length>0){
-    const custs=custItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
-    if(custs.length>0){S.customers=custs;S.nextCustId=Math.max(...custs.map(c=>c.id||0))+1;}
-  }
-  // Load parts
-  const partItems=await flowCall('getItems',SP_LISTS.Parts);
-  if(partItems&&partItems.length>0){
-    const parts=partItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
-    if(parts.length>0){S.parts=parts;S.nextPartId=Math.max(...parts.map(p=>p.id||0))+1;}
-  }
-  // Load users
-  const userItems=isAdmin()?await flowCall('getItems',SP_LISTS.Users):[];
-  if(userItems&&userItems.length>0){
-    const users=userItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
-    if(users.length>0){USERS=users;S.nextUserId=Math.max(...users.map(u=>u.id||0))+1;}
-  }
-  // Load audit log
-  const auditItems=await flowCall('getItems',SP_LISTS.AuditLog);
-  if(auditItems&&auditItems.length>0){
-    const logs=auditItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
-    if(logs.length>0){S.auditLog=logs.sort((a,b)=>b.id-a.id);S.nextAuditId=Math.max(...logs.map(l=>l.id||0))+1;}
-  }
-  // Rates (finance) live in their own list; only roles with finance access can read it
-  if(canFin()){
-    const finItems=await flowCall('getItems',SP_LISTS.Finance);
-    (finItems||[]).forEach(i=>{
-      const f=spDeserialize(i);if(!f)return;
-      const o=S.orders.find(x=>x.id===f.id);if(!o)return;
-      o._finSpId=(i.ID??i.Id);
-      (f.rates||[]).forEach((r,idx)=>{if(o.lines[idx]){o.lines[idx].usRate=r.us||0;o.lines[idx].indiaRate=r.in||0;}});
-    });
-  }
+  const ships=shipRows.map(rowToRec).filter(x=>x.id!==undefined);
+  S.shipments=ships;if(ships.length)S.nextShipId=Math.max(...ships.map(x=>x.id||0))+1;
+  const custs=custRows.map(rowToRec).filter(x=>x.id!==undefined);
+  S.customers=custs;if(custs.length)S.nextCustId=Math.max(...custs.map(c=>c.id||0))+1;
+  const parts=partRows.map(rowToRec).filter(x=>x.id!==undefined);
+  S.parts=parts;if(parts.length)S.nextPartId=Math.max(...parts.map(p=>p.id||0))+1;
+  const users=userRows.map(rowToRec).filter(u=>u.id!==undefined&&u.email);
+  if(users.length){USERS=users;S.nextUserId=Math.max(...users.map(u=>u.id||0))+1;}
+  const logs=auditRows.map(rowToRec).filter(x=>x.id!==undefined).sort((a,b)=>b.id-a.id);
+  S.auditLog=logs;if(logs.length)S.nextAuditId=Math.max(...logs.map(l=>l.id||0))+1;
+  S.auditMinSpId=auditRows.length?Math.min(...auditRows.map(rowId)):0;S.auditMore=auditRows.length>=AUDIT_PAGE;
+  applyListSettings(setRows);
+  applyFinance(finRows);
   syncShipmentsToOrders();
+  if(S.loadWarnings.length)notice('Warning: '+[...new Set(S.loadWarnings)].join(', ')+' has 5,000+ rows and the flow cannot read them all yet. Apply the flow upgrade (docs/FLOW_UPGRADE.md) before relying on this data.','warn');
+  else if(win)notice(`Showing open orders and the last ${HISTORY_MONTHS} months. Use "Load older history" on the Orders page for earlier data.`);
+}
+// Load a past date range on request (needs USE_COLUMNS)
+async function loadHistory(fromISO,toISO){
+  const known=new Set(S.orders.map(o=>o._spId));
+  const orderRows=await spFetchAll(SP_LISTS.Orders,`${dtq('OrderDate','ge',fromISO)} and ${dtq('OrderDate','le',toISO)}`);
+  const add=orderRows.map(rowToRec).filter(o=>o.id!==undefined&&!known.has(o._spId));add.forEach(fixRates);
+  S.orders=S.orders.concat(add);
+  const knownS=new Set(S.shipments.map(x=>x._spId));
+  const [shipRows,finRows]=await Promise.all([
+    spFetchAll(SP_LISTS.Shipments,dtq('ShipDate','ge',addDaysISO(fromISO,-30))),
+    canFin()?spFetchAll(SP_LISTS.Finance,`${dtq('OrderDate','ge',fromISO)} and ${dtq('OrderDate','le',toISO)}`):Promise.resolve([])
+  ]);
+  S.shipments=S.shipments.concat(shipRows.map(rowToRec).filter(x=>x.id!==undefined&&!knownS.has(x._spId)));
+  applyFinance(finRows);syncShipmentsToOrders();
+  if(S.window&&S.window.from&&fromISO<S.window.from)S.window.from=fromISO;
+  return add.length;
+}
+async function loadMoreAudit(){
+  const rows=await spFetchLatest(SP_LISTS.AuditLog,AUDIT_PAGE,S.auditMinSpId);
+  const have=new Set(S.auditLog.map(e=>e.id));
+  rows.map(rowToRec).filter(x=>x.id!==undefined&&!have.has(x.id)).forEach(e=>S.auditLog.push(e));
+  S.auditLog.sort((a,b)=>b.id-a.id);
+  if(rows.length)S.auditMinSpId=Math.min(...rows.map(rowId));
+  S.auditMore=rows.length>=AUDIT_PAGE;
+}
+// Dropdown lists (locations, shipment types) are editable by Admin and kept in POM_AppState
+function applyListSettings(rows){
+  const r=(rows||[]).find(x=>x.Title==='settings');if(!r)return;
+  S.settingsSpId=rowId(r);const d=spDeserialize(r)||{};
+  if(Array.isArray(d.locations)&&d.locations.length){LOCATIONS.length=0;LOCATIONS.push(...d.locations);}
+  if(Array.isArray(d.shipTypes)&&d.shipTypes.length){SHIP_TYPES.length=0;SHIP_TYPES.push(...d.shipTypes);}
+}
+async function spSaveSettings(){
+  const f=spSerialize({locations:[...LOCATIONS],shipTypes:[...SHIP_TYPES]},'settings');
+  if(S.settingsSpId){await flowCall('updateItem',SP_LISTS.AppState,{itemId:S.settingsSpId,...f});}
+  else{const c=await flowCall('createItem',SP_LISTS.AppState,f);S.settingsSpId=rowId(c);}
 }
 
 // ══════════════════════════════════════════════════════════════
 // SAVE HELPERS — create or update a single record
 // ══════════════════════════════════════════════════════════════
-async function spSaveOrder(order){
+// Optimistic check: has someone else saved this record since we loaded it? (needs FLOW_QUERY)
+async function spCheckConflict(list,rec){
+  if(!FLOW_QUERY||!rec._spId||rec._forceSave)return;
+  const rows=await flowCall('getItems',list,{query:`$top=1&$filter=Id eq ${rec._spId}`});
+  const row=(rows||[]).find(r=>rowId(r)===rec._spId);
+  const cur=row?spDeserialize(row):null;
+  if(cur&&(cur._rev||0)!==(rec._rev||0)){const e=new Error('CONFLICT');e.conflict=true;e.rec=rec;throw e;}
+}
+// One save at a time per record, so quick successive saves never look like a conflict with ourselves
+const _saveQ=new Map();
+function serialSave(key,fn){const prev=_saveQ.get(key)||Promise.resolve();const next=prev.catch(()=>{}).then(fn);_saveQ.set(key,next);next.catch(()=>{}).then(()=>{if(_saveQ.get(key)===next)_saveQ.delete(key);});return next;}
+function knownRev(list,rec){const cur=(list==='o'?S.orders:S.shipments).find(x=>x.id===rec.id);if(cur&&cur!==rec)rec._rev=Math.max(rec._rev||0,cur._rev||0);}
+const stripLocal=o=>{const c=cloneObj(o);['_spId','_finSpId','_colStatus','_forceSave'].forEach(k=>delete c[k]);return c;};
+function shipStatus(sh){return(sh.lines||[]).length&&sh.lines.every(l=>l.deliveryStatus==='Delivered')?'Delivered':'In Transit';}
+function spSaveOrder(order){return serialSave('o'+order.id,()=>spSaveOrderNow(order));}
+async function spSaveOrderNow(order){
   if(!SP_ENABLED)return;
-  // Strip the finance fields and the SharePoint bookkeeping ids before storing the order
-  const clean=cloneObj(order);delete clean._spId;delete clean._finSpId;
+  knownRev('o',order);
+  await spCheckConflict(SP_LISTS.Orders,order);
+  const nextRev=(order._rev||0)+1,status=orderStatus(order);
+  const clean=stripLocal(order);clean._rev=nextRev;
   clean.lines=(clean.lines||[]).map(l=>{const c={...l};delete c.usRate;delete c.indiaRate;return c;});
   const fields=spSerialize(clean,order.customerPONo||order.id);
+  if(USE_COLUMNS){const c={Customer:String(order.customerName||'').slice(0,250),Status:status};if(validDay(order.orderDate))c.OrderDate=isoDay(order.orderDate)+'T00:00:00Z';fields.Cols=JSON.stringify(c);}
   if(order._spId){
     await flowCall('updateItem',SP_LISTS.Orders,{itemId:order._spId,...fields});
   } else {
@@ -634,11 +767,13 @@ async function spSaveOrder(order){
     const idx=S.orders.findIndex(o=>o.id===order.id);
     if(idx>=0)S.orders[idx]._spId=(created.ID??created.Id);
   }
+  order._rev=nextRev;order._colStatus=status;delete order._forceSave;
   if(canFin())await spSaveFinance(order);
 }
 
 async function spSaveFinance(order){
   const fin=spSerialize({id:order.id,rates:(order.lines||[]).map(l=>({us:+l.usRate||0,in:+l.indiaRate||0}))},order.customerPONo||order.id);
+  if(USE_COLUMNS&&validDay(order.orderDate))fin.Cols=JSON.stringify({OrderDate:isoDay(order.orderDate)+'T00:00:00Z'});
   if(order._finSpId){
     await flowCall('updateItem',SP_LISTS.Finance,{itemId:order._finSpId,...fin});
   } else {
@@ -649,17 +784,30 @@ async function spSaveFinance(order){
   }
 }
 
-async function spSaveShipment(ship){
+// When a shipment changes, an order may become Open/Closed — keep its Status column right
+function syncOrderStatusCols(){
+  if(!USE_COLUMNS)return;
+  S.orders.forEach(o=>{if(o._spId&&o._colStatus!==undefined&&o._colStatus!==orderStatus(o))persist(()=>spSaveOrder(o),'order '+o.customerPONo);});
+}
+function spSaveShipment(ship){return serialSave('s'+ship.id,()=>spSaveShipmentNow(ship));}
+async function spSaveShipmentNow(ship){
   if(!SP_ENABLED)return;
-  const fields=spSerialize(ship,ship.shippingInvoiceNo||ship.id);
+  knownRev('s',ship);
+  await spCheckConflict(SP_LISTS.Shipments,ship);
+  const nextRev=(ship._rev||0)+1;
+  const clean=stripLocal(ship);clean._rev=nextRev;
+  const fields=spSerialize(clean,ship.shippingInvoiceNo||ship.id);
+  if(USE_COLUMNS){const c={Status:shipStatus(ship)};if(validDay(ship.dateOfShipping))c.ShipDate=isoDay(ship.dateOfShipping)+'T00:00:00Z';fields.Cols=JSON.stringify(c);}
   if(ship._spId){
     await flowCall('updateItem',SP_LISTS.Shipments,{itemId:ship._spId,...fields});
   } else {
     const created=await flowCall('createItem',SP_LISTS.Shipments,fields);
     ship._spId=(created.ID??created.Id);
-    const idx=S.shipments.findIndex(s=>s.id===ship.id);
+    const idx=S.shipments.findIndex(x=>x.id===ship.id);
     if(idx>=0)S.shipments[idx]._spId=(created.ID??created.Id);
   }
+  ship._rev=nextRev;delete ship._forceSave;
+  syncOrderStatusCols();
 }
 
 async function spDeleteOrder(spId,finSpId){
@@ -671,6 +819,7 @@ async function spDeleteOrder(spId,finSpId){
 async function spDeleteShipment(spId){
   if(!SP_ENABLED||!spId)return;
   await flowCall('deleteItem',SP_LISTS.Shipments,{itemId:spId});
+  syncOrderStatusCols();
 }
 
 async function spSaveCustomer(cust){
@@ -931,8 +1080,8 @@ function auditLog(type,refId,refNo,action,changes){
   if(!S.user)return;
   const entry={id:S.nextAuditId++,type,refId,refNo,timestamp:new Date().toISOString(),userName:S.user.name,userRole:S.user.role,action,changes:changes||[]};
   S.auditLog.unshift(entry);
-  if(S.auditLog.length>500)S.auditLog.length=500;
-  spSaveAuditEntry(entry).catch(e=>console.error('SP save audit:',e));
+  if(S.auditLog.length>5000)S.auditLog.length=5000;
+  persist(()=>spSaveAuditEntry(entry),'save audit');
 }
 function diffObjects(label,before,after,fields){
   const changes=[];
@@ -1080,7 +1229,7 @@ function setupHTML(){return`<div style="max-width:560px;margin:60px auto;font-fa
 function bindSetup(){document.getElementById('suBtn').onclick=async()=>{const n=document.getElementById('suName').value.trim(),e=document.getElementById('suEmail').value.trim().toLowerCase(),p=document.getElementById('suPass').value,o=document.getElementById('suOut');if(!n||!e||!p){o.textContent='Fill all three fields.';return;}const json=JSON.stringify({id:1,name:n,email:e,passHash:await hashPw(e,p),role:'Admin'});o.innerHTML=`<b>Title</b> column:<pre style="background:#F1F5F9;padding:8px;border-radius:6px;white-space:pre-wrap;word-break:break-all">${esc(e)}</pre><b>POM_Data</b> column:<pre style="background:#F1F5F9;padding:8px;border-radius:6px;white-space:pre-wrap;word-break:break-all">${esc(json)}</pre>`;};}
 window.addEventListener('hashchange',()=>render());
 function render(){if(location.hash==='#setup'){document.getElementById('root').innerHTML=setupHTML();bindSetup();return;}document.getElementById('root').innerHTML=S.page==='login'?loginHTML():appHTML();document.querySelectorAll('.modal-overlay').forEach(m=>m.remove());if(S.modal){document.body.insertAdjacentHTML('beforeend',modalHTML());bindModal();}if(S.showOrderExport){document.body.insertAdjacentHTML('beforeend',orderExportModalHTML());bindOrderExportModal();}if(S.showShipExport){document.body.insertAdjacentHTML('beforeend',shipExportModalHTML());bindShipExportModal();}if(S.showShipRelink){document.body.insertAdjacentHTML('beforeend',shipRelinkModalHTML());bindShipRelinkModal();}if(S.showOrderRelink){document.body.insertAdjacentHTML('beforeend',orderRelinkModalHTML());bindOrderRelinkModal();}if(S.page==='login')bindLogin();else bindApp();}
-function loginHTML(){return`<div class="login-wrap"><div class="login-panel-left"><div class="login-left-content"><div class="login-left-globe"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(59,158,255,.9)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div><h1 class="login-left-tagline">Experience.<br>Reliability.<br>Value.</h1><p class="login-left-sub">Your purchase order and shipment operations — in one place.</p><div class="login-left-dots"><span></span><span style="background:rgba(59,158,255,.3)"></span><span style="background:rgba(59,158,255,.3)"></span></div></div><div class="login-version">Mentco PO Manager · v9</div></div><div class="login-panel-right"><div class="login-card"><div class="login-logo"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg><div><div class="login-logo-text">Mentco</div></div></div><h2 class="login-title">Welcome back</h2><p class="login-sub">Sign in to manage purchase orders &amp; shipments</p><div class="login-err" id="lerr" style="${S.loginMsg?'display:block':''}">${S.loginMsg||'Invalid email or password.'}</div><div class="fgrp"><label class="flabel">Email</label><input class="finput" id="lemail" type="email" value="${SP_ENABLED?'':'demo@example.com'}" autocomplete="email"></div><div class="fgrp"><label class="flabel">Password</label><input class="finput" id="lpass" type="password" value="${SP_ENABLED?'':'demo'}" autocomplete="current-password"></div><button class="btn btn-primary btn-full" id="lbtn" style="margin-top:10px;padding:12px 16px;font-size:14px">Sign In →</button>${SP_ENABLED?'':`<div class="login-hint"><b>Local preview</b><span>demo@example.com / demo</span></div>`}</div></div></div>`;}
+function loginHTML(){return`<div class="login-wrap"><div class="login-panel-left"><div class="login-left-content"><div class="login-left-globe"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(59,158,255,.9)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div><h1 class="login-left-tagline">Experience.<br>Reliability.<br>Value.</h1><p class="login-left-sub">Your purchase order and shipment operations — in one place.</p><div class="login-left-dots"><span></span><span style="background:rgba(59,158,255,.3)"></span><span style="background:rgba(59,158,255,.3)"></span></div></div><div class="login-version">Mentco PO Manager · v${APP_VERSION}</div></div><div class="login-panel-right"><div class="login-card"><div class="login-logo"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg><div><div class="login-logo-text">Mentco</div></div></div><h2 class="login-title">Welcome back</h2><p class="login-sub">Sign in to manage purchase orders &amp; shipments</p><div class="login-err" id="lerr" style="${S.loginMsg?'display:block':''}">${S.loginMsg||'Invalid email or password.'}</div><div class="fgrp"><label class="flabel">Email</label><input class="finput" id="lemail" type="email" value="${SP_ENABLED?'':'demo@example.com'}" autocomplete="email"></div><div class="fgrp"><label class="flabel">Password</label><input class="finput" id="lpass" type="password" value="${SP_ENABLED?'':'demo'}" autocomplete="current-password"></div><button class="btn btn-primary btn-full" id="lbtn" style="margin-top:10px;padding:12px 16px;font-size:14px">Sign In →</button>${SP_ENABLED?'':`<div class="login-hint"><b>Local preview</b><span>demo@example.com / demo</span></div>`}</div></div></div>`;}
 function bindLogin(){
   const go=async()=>{
     const em=document.getElementById('lemail').value.trim(),pw=document.getElementById('lpass').value,errEl=document.getElementById('lerr'),btn=document.getElementById('lbtn');
@@ -1192,6 +1341,7 @@ function appHTML(){
       </div>
       <div class="topbar-right">
         ${overdueCount>0?`<span class="badge b-red" style="font-size:11px">⚠ ${overdueCount} overdue</span>`:''}
+        <span title="App version" style="font-size:10px;color:var(--light);margin-right:8px">v${APP_VERSION}</span>
         ${SP_ENABLED?`<span title="SharePoint connected" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--success);background:var(--success-l);border:1px solid var(--success-mid);border-radius:10px;padding:2px 8px"><span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block"></span>SharePoint</span>`:`<span title="SharePoint not configured" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--warn);background:var(--warn-l);border:1px solid var(--warn-mid);border-radius:10px;padding:2px 8px"><span style="width:6px;height:6px;background:var(--warn);border-radius:50%;display:inline-block"></span>Local only</span>`}
         <span class="badge b-dark" style="font-size:11px">${roleLabel(u.role)}</span>
       </div>
@@ -1579,6 +1729,7 @@ function ordersHTML(){
   </div>`:'';
 
   return`${alertStrip}
+  ${historyPanelHTML()}
   <div class="toolbar">
     <div class="toolbar-left">
       <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="searchInput" placeholder="Search by customer, PO, buyer..." value="${esc(S.search)}"></div>
@@ -1590,7 +1741,7 @@ function ordersHTML(){
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-success btn-sm" id="orderExportBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export</button>
-      ${canEdit()?`<button class="btn btn-secondary btn-sm" id="importDocBtn" style="border-color:var(--purple);color:var(--purple)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Import Doc</button>`:''}
+      ${canEdit()&&AI_IMPORT?`<button class="btn btn-secondary btn-sm" id="importDocBtn" style="border-color:var(--purple);color:var(--purple)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Import Doc</button>`:''}
       ${canEdit()?`<button class="btn btn-primary btn-sm" id="newOrderBtn">+ New Order</button>`:''}
     </div>
   </div>
@@ -1756,7 +1907,7 @@ function bindOrderRelinkModal(){
       }
     });
     syncShipmentsToOrders();
-    spSaveOrder(order).catch(e=>console.error('SP save relink order:',e));
+    persist(()=>spSaveOrder(order),'save relink order');
     S.showOrderRelink=false;S.relinkOrderId=null;S.relinkOrderLineIdx=null;
     S.modal={title:'Re-link Saved',type:'warn',confirmLabel:'OK',message:`Order <strong>${esc(order.customerPONo)}</strong> re-linked and all quantities re-synced.`,onConfirm:()=>{S.modal=null;render();}};
     render();
@@ -1848,7 +1999,7 @@ function bindShipRelinkModal(){
       l.orderLineNo=newLineNo?parseInt(newLineNo):null;
     });
     syncShipmentsToOrders();
-    spSaveShipment(sh2).catch(e=>console.error('SP save relink ship:',e));
+    persist(()=>spSaveShipment(sh2),'save relink ship');
     S.showShipRelink=false;S.relinkShipId=null;
     S.modal={title:'Re-link Saved',type:'warn',confirmLabel:'OK',message:`Shipment <strong>${esc(sh2.shippingInvoiceNo)}</strong> re-linked and all order quantities re-synced.`,onConfirm:()=>{S.modal=null;render();}};
     render();
@@ -1889,6 +2040,7 @@ function shipmentsHTML(){
   </div>`:'';
 
   return`${alertStrip}
+  ${historyPanelHTML()}
   <div class="toolbar">
     <div class="toolbar-left">
       <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="shipSearchInput" placeholder="Search by invoice, tracking, customer..." value="${esc(S.shipSearch)}"></div>
@@ -1900,7 +2052,7 @@ function shipmentsHTML(){
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-success btn-sm" id="shipExportBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export</button>
-      ${canEdit()?`<button class="btn btn-secondary btn-sm" id="importShipDocBtn" style="border-color:var(--purple);color:var(--purple)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Import Doc</button>`:''}
+      ${canEdit()&&AI_IMPORT?`<button class="btn btn-secondary btn-sm" id="importShipDocBtn" style="border-color:var(--purple);color:var(--purple)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Import Doc</button>`:''}
       ${canEdit()?`<button class="btn btn-purple btn-sm" id="newShipmentBtn">+ New Shipment</button>`:''}
     </div>
   </div>
@@ -2633,7 +2785,7 @@ function usersHTML(){
         <table class="dt" style="min-width:unset">
           <thead><tr><th>When</th><th>Who</th><th>Role</th><th>Type</th><th>Reference</th><th>Action</th><th>Changes</th></tr></thead>
           <tbody>
-            ${S.auditLog.slice(0,100).map(e=>`<tr>
+            ${S.auditLog.slice(0,1000).map(e=>`<tr>
               <td style="font-family:'JetBrains Mono',monospace;font-size:10px;white-space:nowrap">${fmtTS(e.timestamp)}</td>
               <td style="font-size:11px;font-weight:500">${esc(e.userName)}</td>
               <td><span class="badge b-gray" style="font-size:10px">${esc(e.userRole)}</span></td>
@@ -2644,11 +2796,34 @@ function usersHTML(){
             </tr>`).join('')}
           </tbody>
         </table>`}
+        ${S.auditMore&&S.auditLog.length?`<div style="text-align:center;padding:10px"><button class="btn btn-secondary btn-sm" id="auditMoreBtn">Load older entries</button></div>`:''}
       </div>
     </div>`:''}`;
 }
 
-function mastersHTML(){const tab=S.masterTab;return`<div style="display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);width:fit-content;overflow:hidden"><button class="btn${tab==='customers'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none" data-master-tab="customers">Customers (${S.customers.length})</button><button class="btn${tab==='parts'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="parts">Part Numbers (${S.parts.length})</button></div>${tab==='customers'?custMasterHTML():partMasterHTML()}`;}
+function listsMasterHTML(){return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Dropdown lists</span></div><div class="master-form"><p style="font-size:12px;color:var(--muted);margin-bottom:10px">One item per line. Removing an item does not change existing orders or shipments; it only removes it from the dropdown.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="fg"><label>Locations</label><textarea id="setLoc" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px">${esc(LOCATIONS.join('\n'))}</textarea></div><div class="fg"><label>Shipment types</label><textarea id="setShip" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px">${esc(SHIP_TYPES.join('\n'))}</textarea></div></div><div style="margin-top:10px;display:flex;gap:10px;align-items:center"><button class="btn btn-primary btn-sm" id="saveListsBtn">Save lists</button><span id="listsMsg" style="font-size:12px;color:var(--muted)"></span></div></div></div>${USE_COLUMNS?`<div class="master-card"><div class="master-card-header"><span class="master-card-title">Maintenance</span></div><div class="master-form"><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Re-save the loaded orders, shipments and rates so their search columns are filled in. Use once after switching on the search columns, or after loading older history.</p><button class="btn btn-secondary btn-sm" id="rebuildColsBtn">Rebuild search columns</button> <span id="rebuildMsg" style="font-size:12px;color:var(--muted)"></span></div></div>`:''}</div>`;}
+function dupPOWarning(o){
+  const po=String(o.customerPONo||'').trim().toLowerCase();if(!po||S.page!=='new-order')return'';
+  const dup=S.orders.some(x=>x.id!==o.id&&String(x.customerPONo||'').trim().toLowerCase()===po&&x.customerName===o.customerName);
+  return dup?`<br><br><strong style="color:#B91C1C">⚠ ${esc(o.customerName||'This customer')} already has a PO numbered ${esc(o.customerPONo)}.</strong> Save only if this is intended.`:'';
+}
+function overShipWarning(sh){
+  const agg={};(sh.lines||[]).forEach(l=>{if(!l.customerPONo||!l.partNo)return;const k=l.customerPONo+'||'+l.partNo;agg[k]=(agg[k]||0)+(+l.shippedQty||0);});
+  const w=[];
+  Object.keys(agg).forEach(k=>{
+    const [po,part]=k.split('||');const o=S.orders.find(x=>x.customerPONo===po);if(!o)return;
+    const cap=o.lines.filter(l=>l.partNo===part&&(l.lineStatus||'Open')!=='Cancelled').reduce((a,l)=>a+calcLine(l).effectiveQty,0);
+    let other=0;S.shipments.forEach(x=>{if(x.id===sh.id)return;(x.lines||[]).forEach(l=>{if(l.customerPONo===po&&l.partNo===part)other+=(+l.shippedQty||0);});});
+    if(other+agg[k]>cap)w.push(`${esc(po)} / ${esc(part)}: shipping ${agg[k]} + already shipped ${other} is more than the ${cap} ordered`);
+  });
+  return w.length?`<br><br><strong style="color:#B91C1C">⚠ Over-shipping:</strong><br>${w.join('<br>')}<br>Save only if this is intended.`:'';
+}
+function historyPanelHTML(){
+  if(!USE_COLUMNS||!S.window||S.window.full||!S.window.from)return'';
+  const to=addDaysISO(S.window.from,-1);
+  return`<div style="background:var(--info-l);border:1px solid var(--accent-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span>Showing open orders and everything since <b>${esc(S.window.from)}</b>. Older records are not loaded.</span><label>From <input type="date" id="histFrom" value="${esc(addDaysISO(S.window.from,-365))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><label>To <input type="date" id="histTo" value="${esc(to)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histLoadBtn">Load older history</button><span id="histMsg" style="color:var(--muted)"></span></div>`;
+}
+function mastersHTML(){const tab=S.masterTab;return`<div style="display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);width:fit-content;overflow:hidden"><button class="btn${tab==='customers'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none" data-master-tab="customers">Customers (${S.customers.length})</button><button class="btn${tab==='parts'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="parts">Part Numbers (${S.parts.length})</button><button class="btn${tab==='lists'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="lists">Dropdown lists</button></div>${tab==='customers'?custMasterHTML():tab==='lists'?listsMasterHTML():partMasterHTML()}`;}
 function custMasterHTML(){return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Add Customer</span></div><div class="master-form"><div style="display:grid;grid-template-columns:1.5fr 1fr 1.2fr auto;gap:8px;align-items:flex-end"><div class="fg"><label>Name *</label><input id="newCustName" placeholder="Acme Corp" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Contact</label><input id="newCustContact" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Email</label><input id="newCustEmail" type="email" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><button class="btn btn-primary btn-sm" id="addCustBtn" style="height:36px">+ Add</button></div><div id="custAddErr" style="display:none;color:var(--danger);font-size:12px;margin-top:6px"></div></div></div><div class="master-card"><div class="master-card-header"><span class="master-card-title">All Customers</span><span class="badge b-gray">${S.customers.length}</span></div><div class="master-list">${S.customers.map(c=>{const isEd=S.masterCustEdit===c.id;const pc=S.parts.filter(p=>p.custId===c.id).length;return`<div class="master-row">${isEd?`<div class="inline-edit-row"><input class="edit-input" id="ecn${c.id}" value="${esc(c.name)}" style="flex:1.5"><input class="edit-input" id="ecc${c.id}" value="${esc(c.contact)}" style="flex:1"><input class="edit-input" id="ece${c.id}" value="${esc(c.email)}" type="email" style="flex:1.2"><button class="btn btn-success btn-sm" data-action="saveCust" data-id="${c.id}">Save</button><button class="btn btn-secondary btn-sm" data-action="cancelCustEdit">Cancel</button></div>`:`<div class="master-row-info"><span class="master-row-name">${esc(c.name)}</span><span class="master-row-sub">${esc(c.contact||'-')} - ${pc} part${pc!==1?'s':''}</span></div><div class="master-row-actions"><button class="btn btn-secondary btn-sm" data-action="editCust" data-id="${c.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="deleteCust" data-id="${c.id}">Delete</button></div>`}</div>`;}).join('')||`<div class="empty">No customers.</div>`}</div></div></div>`;}
 function partMasterHTML(){const fid=S.masterFilterCust;const fp=fid?S.parts.filter(p=>p.custId===fid):S.parts;return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Add Part Number</span></div><div class="master-form"><div style="display:grid;grid-template-columns:1.5fr 1fr 2fr auto;gap:8px;align-items:flex-end"><div class="fg"><label>Customer *</label><select id="newPartCust" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none"><option value="">Select...</option>${S.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div><div class="fg"><label>Part No *</label><input id="newPartNo" placeholder="AC-004" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Description</label><input id="newPartDesc" placeholder="Bracket Assembly" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><button class="btn btn-primary btn-sm" id="addPartBtn" style="height:36px">+ Add</button></div><div id="partAddErr" style="display:none;color:var(--danger);font-size:12px;margin-top:6px"></div></div></div><div class="master-card"><div class="master-card-header"><span class="master-card-title">All Part Numbers</span><div style="display:flex;align-items:center;gap:8px"><select id="filterPartCust" style="padding:5px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none"><option value="">All Customers</option>${S.customers.map(c=>`<option value="${c.id}"${c.id===fid?' selected':''}>${esc(c.name)}</option>`).join('')}</select><span class="badge b-gray">${fp.length}</span></div></div><div class="master-list">${fp.map(p=>{const cust=S.customers.find(c=>c.id===p.custId);const isEd=S.masterPartEdit===p.id;return`<div class="master-row">${isEd?`<div class="inline-edit-row"><select class="edit-input" id="epc${p.id}" style="flex:1.5">${S.customers.map(c=>`<option value="${c.id}"${c.id===p.custId?' selected':''}>${esc(c.name)}</option>`).join('')}</select><input class="edit-input" id="epn${p.id}" value="${esc(p.partNo)}" style="flex:1"><input class="edit-input" id="epd${p.id}" value="${esc(p.desc)}" style="flex:1.5"><button class="btn btn-success btn-sm" data-action="savePart" data-id="${p.id}">Save</button><button class="btn btn-secondary btn-sm" data-action="cancelPartEdit">Cancel</button></div>`:`<div class="master-row-info"><span class="master-row-name" style="font-family:'JetBrains Mono',monospace">${esc(p.partNo)}</span><span class="master-row-sub">${esc(cust?.name||'?')} - ${esc(p.desc||'-')}</span></div><div class="master-row-actions"><button class="btn btn-secondary btn-sm" data-action="editPart" data-id="${p.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="deletePart" data-id="${p.id}">Delete</button></div>`}</div>`;}).join('')||`<div class="empty">No parts.</div>`}</div></div></div>`;}
 function modalHTML(){const m=S.modal,type=m.type||'warn';return`<div class="modal-overlay"><div class="modal"><div class="modal-icon ${type}"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><h3>${m.title}</h3><p>${m.message}</p><div class="modal-actions"><button class="btn btn-secondary" id="modalCancel">Cancel</button><button class="btn ${type==='danger'?'btn-danger':'btn-success'}" id="modalConfirm">${m.confirmLabel||'Confirm'}</button></div></div></div>`;}
@@ -2668,7 +2843,7 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
         ord.lines.forEach((l,i)=>{if((l.lineStatus||'Open')==='Open'){changes.push({field:`Line ${i+1} (${l.partNo||'?'}) Line Status`,from:'Open',to:'Cancelled'});l.lineStatus='Cancelled';}});
         syncShipmentsToOrders();
         if(changes.length)auditLog('order',ord.id,ord.customerPONo,'Cancelled',changes);
-        spSaveOrder(ord).catch(e=>console.error('SP save cancel PO:',e));
+        persist(()=>spSaveOrder(ord),'save cancel PO');
         render();
       }};render();
   });
@@ -2744,24 +2919,24 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
         USERS[idx].email=email;
         USERS[idx].role=role;
         if(password){USERS[idx].passHash=await hashPw(email,password);delete USERS[idx].password;}
-        spSaveUser(USERS[idx]).catch(e=>console.error('SP update user:',e));
+        persist(()=>spSaveUser(USERS[idx]),'update user');
       }
       S.userEdit=null;
     } else {
       // Add mode — password required
       if(!password){showErr('Password is required for new users.');return;}
       if(USERS.find(u=>u.email===email)){showErr('A user with this email already exists.');return;}
-      const newUser={id:S.nextUserId++,name,email,passHash:await hashPw(email,password),role};USERS.push(newUser);spSaveUser(newUser).catch(e=>console.error('SP save user:',e));
+      const newUser={id:S.nextUserId++,name,email,passHash:await hashPw(email,password),role};USERS.push(newUser);persist(()=>spSaveUser(newUser),'save user');
     }
     render();
   });
   document.getElementById('cancelUserEdit')?.addEventListener('click',()=>{S.userEdit=null;render();});
-  document.querySelectorAll('[data-master-tab]').forEach(btn=>{btn.addEventListener('click',()=>{S.masterTab=btn.dataset.masterTab;S.masterCustEdit=null;S.masterPartEdit=null;render();});});document.getElementById('filterPartCust')?.addEventListener('change',ev=>{S.masterFilterCust=ev.target.value?parseInt(ev.target.value):null;render();});document.getElementById('addCustBtn')?.addEventListener('click',()=>{const name=document.getElementById('newCustName').value.trim(),contact=document.getElementById('newCustContact').value.trim(),email=document.getElementById('newCustEmail').value.trim(),err=document.getElementById('custAddErr');if(!name){err.textContent='Name required.';err.style.display='block';return;}if(S.customers.find(c=>c.name.toLowerCase()===name.toLowerCase())){err.textContent='Already exists.';err.style.display='block';return;}const newCust={id:S.nextCustId++,name,contact,email};S.customers.push(newCust);spSaveCustomer(newCust).catch(e=>console.error('SP save cust:',e));render();});document.getElementById('addPartBtn')?.addEventListener('click',()=>{const custId=parseInt(document.getElementById('newPartCust').value),partNo=document.getElementById('newPartNo').value.trim(),desc=document.getElementById('newPartDesc').value.trim(),err=document.getElementById('partAddErr');if(!custId){err.textContent='Select customer.';err.style.display='block';return;}if(!partNo){err.textContent='Part No required.';err.style.display='block';return;}if(S.parts.find(p=>p.partNo.toLowerCase()===partNo.toLowerCase()&&p.custId===custId)){err.textContent='Already exists.';err.style.display='block';return;}const newPart={id:S.nextPartId++,custId,partNo,desc};S.parts.push(newPart);spSavePart(newPart).catch(e=>console.error('SP save part:',e));render();});document.getElementById('backBtn')?.addEventListener('click',()=>{S.page='orders';S.editing=null;S.orderWizStep=1;render();});document.getElementById('saveOrderBtn')?.addEventListener('click',()=>{const data=collectOrderForm();S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save order for <strong>${esc(data.customerName||'Unknown')}</strong>? Once saved, only Admins can edit it.`,onConfirm:()=>{
+  document.querySelectorAll('[data-master-tab]').forEach(btn=>{btn.addEventListener('click',()=>{S.masterTab=btn.dataset.masterTab;S.masterCustEdit=null;S.masterPartEdit=null;render();});});document.getElementById('filterPartCust')?.addEventListener('change',ev=>{S.masterFilterCust=ev.target.value?parseInt(ev.target.value):null;render();});document.getElementById('addCustBtn')?.addEventListener('click',()=>{const name=document.getElementById('newCustName').value.trim(),contact=document.getElementById('newCustContact').value.trim(),email=document.getElementById('newCustEmail').value.trim(),err=document.getElementById('custAddErr');if(!name){err.textContent='Name required.';err.style.display='block';return;}if(S.customers.find(c=>c.name.toLowerCase()===name.toLowerCase())){err.textContent='Already exists.';err.style.display='block';return;}const newCust={id:S.nextCustId++,name,contact,email};S.customers.push(newCust);persist(()=>spSaveCustomer(newCust),'save cust');render();});document.getElementById('addPartBtn')?.addEventListener('click',()=>{const custId=parseInt(document.getElementById('newPartCust').value),partNo=document.getElementById('newPartNo').value.trim(),desc=document.getElementById('newPartDesc').value.trim(),err=document.getElementById('partAddErr');if(!custId){err.textContent='Select customer.';err.style.display='block';return;}if(!partNo){err.textContent='Part No required.';err.style.display='block';return;}if(S.parts.find(p=>p.partNo.toLowerCase()===partNo.toLowerCase()&&p.custId===custId)){err.textContent='Already exists.';err.style.display='block';return;}const newPart={id:S.nextPartId++,custId,partNo,desc};S.parts.push(newPart);persist(()=>spSavePart(newPart),'save part');render();});document.getElementById('backBtn')?.addEventListener('click',()=>{S.page='orders';S.editing=null;S.orderWizStep=1;render();});document.getElementById('saveOrderBtn')?.addEventListener('click',()=>{const data=collectOrderForm();S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save order for <strong>${esc(data.customerName||'Unknown')}</strong>? Once saved, only Admins can edit it.${dupPOWarning(data)}`,onConfirm:()=>{
   data.saved=true;
   if(S.page==='new-order'){
     data.id=S.nextOrderId++;S.orders.push(data);
     auditLog('order',data.id,data.customerPONo,'Created',[]);
-    spSaveOrder(data).catch(e=>console.error('SP save order:',e));
+    persist(()=>spSaveOrder(data),'save order');
   } else {
     const idx=S.orders.findIndex(o=>o.id===data.id);
     if(idx>=0){
@@ -2796,17 +2971,17 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
       });
       if(changes.length>0)auditLog('order',data.id,data.customerPONo,'Updated',changes);
       S.orders[idx]=data;
-      spSaveOrder(S.orders[idx]).catch(e=>console.error('SP update order:',e));
+      persist(()=>spSaveOrder(S.orders[idx]),'update order');
     }
   }
   S.editing=null;S.page='orders';render();}};render();});document.getElementById('wizNextBtn')?.addEventListener('click',()=>{S.editing=collectOrderForm();S.orderWizStep=Math.min(3,(S.orderWizStep||1)+1);render();});
   document.getElementById('wizPrevBtn')?.addEventListener('click',()=>{S.editing=collectOrderForm();S.orderWizStep=Math.max(1,(S.orderWizStep||1)-1);render();});
-  document.getElementById('addLineBtn')?.addEventListener('click',()=>{const data=collectOrderForm();data.lines.push(emptyLine(data.lines.length+1));S.editing=data;render();});document.getElementById('custNameSel')?.addEventListener('change',ev=>{const data=collectOrderForm();data.customerName=ev.target.value;data.lines=data.lines.map(l=>({...l,partNo:''}));S.editing=data;render();});document.querySelectorAll('[data-f^="lines."]').forEach(el=>{const sub=el.dataset.f.split('.')[2];if(['poQty','indiaRate','usRate','inTransitDays','shortCloseQty'].includes(sub)){el.addEventListener('change',()=>{S.editing=collectOrderForm();render();});}});document.getElementById('consignToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('togLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.getElementById('newShipFromOrderBtn')?.addEventListener('click',()=>{const o=S.editing;S.editingShipment={lines:[{...emptyShipLine(1),customerPONo:o.customerPONo||'',shippedTo:o.customerName||''}],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page='new-shipment';render();});document.getElementById('relinkAllOrderLinesBtn')?.addEventListener('click',ev=>{const btn=ev.target.closest('[data-id]');const id=parseInt(btn?.dataset.id||ev.target.dataset.id);S.relinkOrderId=id;S.relinkOrderLineIdx=null;S.showOrderRelink=true;render();});document.getElementById('backShipBtn')?.addEventListener('click',()=>{S.page='shipments';S.editingShipment=null;S.shipWizStep=1;render();});document.getElementById('saveShipBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();if(!data.shippingInvoiceNo){alert('Shipping Invoice No is required.');return;}S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save shipment <strong>${esc(data.shippingInvoiceNo)}</strong>? This will auto-update Delivered & In Transit on linked order lines.`,onConfirm:()=>{
+  document.getElementById('addLineBtn')?.addEventListener('click',()=>{const data=collectOrderForm();data.lines.push(emptyLine(data.lines.length+1));S.editing=data;render();});document.getElementById('custNameSel')?.addEventListener('change',ev=>{const data=collectOrderForm();data.customerName=ev.target.value;data.lines=data.lines.map(l=>({...l,partNo:''}));S.editing=data;render();});document.querySelectorAll('[data-f^="lines."]').forEach(el=>{const sub=el.dataset.f.split('.')[2];if(['poQty','indiaRate','usRate','inTransitDays','shortCloseQty'].includes(sub)){el.addEventListener('change',()=>{S.editing=collectOrderForm();render();});}});document.getElementById('consignToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('togLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.getElementById('newShipFromOrderBtn')?.addEventListener('click',()=>{const o=S.editing;S.editingShipment={lines:[{...emptyShipLine(1),customerPONo:o.customerPONo||'',shippedTo:o.customerName||''}],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page='new-shipment';render();});document.getElementById('relinkAllOrderLinesBtn')?.addEventListener('click',ev=>{const btn=ev.target.closest('[data-id]');const id=parseInt(btn?.dataset.id||ev.target.dataset.id);S.relinkOrderId=id;S.relinkOrderLineIdx=null;S.showOrderRelink=true;render();});document.getElementById('backShipBtn')?.addEventListener('click',()=>{S.page='shipments';S.editingShipment=null;S.shipWizStep=1;render();});document.getElementById('saveShipBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();if(!data.shippingInvoiceNo){alert('Shipping Invoice No is required.');return;}S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save shipment <strong>${esc(data.shippingInvoiceNo)}</strong>? This will auto-update Delivered & In Transit on linked order lines.${overShipWarning(data)}`,onConfirm:()=>{
   data.saved=true;
   if(S.page==='new-shipment'){
     data.id=S.nextShipId++;S.shipments.push(data);
     auditLog('shipment',data.id,data.shippingInvoiceNo,'Created',[]);
-    spSaveShipment(data).catch(e=>console.error('SP save shipment:',e));
+    persist(()=>spSaveShipment(data),'save shipment');
   } else {
     const idx=S.shipments.findIndex(s=>s.id===data.id);
     if(idx>=0){
@@ -2814,14 +2989,14 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
       const changes=auditShipChanges(oldShip,data);
       if(changes.length>0)auditLog('shipment',data.id,data.shippingInvoiceNo,'Updated',changes);
       S.shipments[idx]=data;
-      spSaveShipment(S.shipments[idx]).catch(e=>console.error('SP update shipment:',e));
+      persist(()=>spSaveShipment(S.shipments[idx]),'update shipment');
     }
   }
   S.editingShipment=null;syncShipmentsToOrders();S.page='shipments';render();}};render();});document.getElementById('shipWizNextBtn')?.addEventListener('click',()=>{S.editingShipment=collectShipmentForm();S.shipWizStep=Math.min(3,(S.shipWizStep||1)+1);render();});
   document.getElementById('shipWizPrevBtn')?.addEventListener('click',()=>{S.editingShipment=collectShipmentForm();S.shipWizStep=Math.max(1,(S.shipWizStep||1)-1);render();});
   document.getElementById('addShipLineBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();data.lines.push(emptyShipLine(data.lines.length+1));S.editingShipment=data;render();});document.getElementById('kanbanToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('kanbanLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.querySelectorAll('.po-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].partNo='';data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});
   // When Part No changes, refresh Order Line No dropdown
-  document.querySelectorAll('.part-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});document.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',()=>{const action=btn.dataset.action,id=btn.dataset.id!=null?parseInt(btn.dataset.id):null,li=btn.dataset.li!=null?parseInt(btn.dataset.li):null;if(action==='view'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.page='view-order';render();}else if(action==='edit'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.orderWizStep=1;S.page='edit-order';render();}else if(action==='deleteOrder'){const ord=S.orders.find(o=>o.id===id);S.modal={title:'Delete Order',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(ord?.customerPONo)}</strong>?`,onConfirm:()=>{const delOrd=S.orders.find(o=>o.id===id);S.orders=S.orders.filter(o=>o.id!==id);if(delOrd?._spId)spDeleteOrder(delOrd._spId,delOrd._finSpId).catch(e=>console.error('SP del order:',e));render();}};render();}else if(action==='removeLine'){const data=collectOrderForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editing=data;render();}
+  document.querySelectorAll('.part-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});document.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',()=>{const action=btn.dataset.action,id=btn.dataset.id!=null?parseInt(btn.dataset.id):null,li=btn.dataset.li!=null?parseInt(btn.dataset.li):null;if(action==='view'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.page='view-order';render();}else if(action==='edit'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.orderWizStep=1;S.page='edit-order';render();}else if(action==='deleteOrder'){const ord=S.orders.find(o=>o.id===id);S.modal={title:'Delete Order',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(ord?.customerPONo)}</strong>?`,onConfirm:()=>{const delOrd=S.orders.find(o=>o.id===id);S.orders=S.orders.filter(o=>o.id!==id);if(delOrd?._spId)persist(()=>spDeleteOrder(delOrd._spId,delOrd._finSpId),'del order');render();}};render();}else if(action==='removeLine'){const data=collectOrderForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editing=data;render();}
 else if(action==='cancelLine'){const data=collectOrderForm();const line=data.lines[li];const oldSt=line.lineStatus||'Open';line.lineStatus='Cancelled';S.editing=data;auditLog('order',data.id,data.customerPONo,'Cancelled',[{field:`Line ${li+1} (${line.partNo||'?'}) Line Status`,from:oldSt,to:'Cancelled'}]);render();}
 else if(action==='reopenLine'){if(!isAdmin())return;const data=collectOrderForm();const line=data.lines[li];line.lineStatus='Open';line.shortCloseQty=0;S.editing=data;auditLog('order',data.id,data.customerPONo,'Reopened',[{field:`Line ${li+1} (${line.partNo||'?'}) Line Status`,from:'Cancelled',to:'Open'}]);render();}
 else if(action==='cancelLine'){
@@ -2844,15 +3019,15 @@ else if(action==='reopenLine'){
   S.editing=data;
   auditLog('order',data.id,data.customerPONo,'Reopened',[{field:`Line ${li+1} (${line.partNo||'—'}) — Line Status`,from:'Cancelled',to:'Open'}]);
   render();
-}else if(action==='relinkOrderLine'){S.relinkOrderId=id;S.relinkOrderLineIdx=li;S.showOrderRelink=true;render();}else if(action==='viewShipment'){S.editingShipment=cloneObj(S.shipments.find(s=>s.id===id));S.page='view-shipment';render();}else if(action==='editShipment'){S.editingShipment=cloneObj(S.shipments.find(s=>s.id===id));S.shipWizStep=1;S.page='edit-shipment';render();}else if(action==='relinkShipment'){S.relinkShipId=id;S.showShipRelink=true;render();}else if(action==='deleteShipment'){const sh=S.shipments.find(s=>s.id===id);S.modal={title:'Delete Shipment',type:'danger',confirmLabel:'Yes, Delete',message:`Delete shipment <strong>${esc(sh?.shippingInvoiceNo)}</strong>? Order quantities will be re-synced.`,onConfirm:()=>{const delShip=S.shipments.find(s=>s.id===id);S.shipments=S.shipments.filter(s=>s.id!==id);if(delShip?._spId)spDeleteShipment(delShip._spId).catch(e=>console.error('SP del shipment:',e));syncShipmentsToOrders();render();}};render();}else if(action==='removeShipLine'){const data=collectShipmentForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editingShipment=data;render();}else if(action==='editUser'){S.userEdit=id;S.page='users';render();}
+}else if(action==='relinkOrderLine'){S.relinkOrderId=id;S.relinkOrderLineIdx=li;S.showOrderRelink=true;render();}else if(action==='viewShipment'){S.editingShipment=cloneObj(S.shipments.find(s=>s.id===id));S.page='view-shipment';render();}else if(action==='editShipment'){S.editingShipment=cloneObj(S.shipments.find(s=>s.id===id));S.shipWizStep=1;S.page='edit-shipment';render();}else if(action==='relinkShipment'){S.relinkShipId=id;S.showShipRelink=true;render();}else if(action==='deleteShipment'){const sh=S.shipments.find(s=>s.id===id);S.modal={title:'Delete Shipment',type:'danger',confirmLabel:'Yes, Delete',message:`Delete shipment <strong>${esc(sh?.shippingInvoiceNo)}</strong>? Order quantities will be re-synced.`,onConfirm:()=>{const delShip=S.shipments.find(s=>s.id===id);S.shipments=S.shipments.filter(s=>s.id!==id);if(delShip?._spId)persist(()=>spDeleteShipment(delShip._spId),'del shipment');syncShipmentsToOrders();render();}};render();}else if(action==='removeShipLine'){const data=collectShipmentForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editingShipment=data;render();}else if(action==='editUser'){S.userEdit=id;S.page='users';render();}
       else if(action==='deleteUser'){
         const usr=USERS.find(u=>u.id===id);
         S.modal={title:'Delete User',type:'danger',confirmLabel:'Yes, Delete',
           message:`Delete user <strong>${esc(usr?.name)}</strong> (${esc(usr?.email)})?<br><br>They will no longer be able to log in.`,
-          onConfirm:()=>{const delUser=USERS.find(u=>u.id===id);USERS=USERS.filter(u=>u.id!==id);if(delUser?._spId)spDeleteUser(delUser._spId).catch(e=>console.error('SP del user:',e));render();}};
+          onConfirm:()=>{const delUser=USERS.find(u=>u.id===id);USERS=USERS.filter(u=>u.id!==id);if(delUser?._spId)persist(()=>spDeleteUser(delUser._spId),'del user');render();}};
         render();
       }
-      else if(action==='editCust'){S.masterCustEdit=id;render();}else if(action==='cancelCustEdit'){S.masterCustEdit=null;render();}else if(action==='saveCust'){const n=document.getElementById(`ecn${id}`)?.value.trim();if(!n)return;const idx=S.customers.findIndex(c=>c.id===id);if(idx>=0){S.customers[idx]={...S.customers[idx],name:n,contact:document.getElementById(`ecc${id}`)?.value.trim()||'',email:document.getElementById(`ece${id}`)?.value.trim()||''};spSaveCustomer(S.customers[idx]).catch(e=>console.error('SP update cust:',e));}S.masterCustEdit=null;render();}else if(action==='deleteCust'){const cust=S.customers.find(c=>c.id===id);const pc=S.parts.filter(p=>p.custId===id).length;S.modal={title:'Delete Customer',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(cust?.name)}</strong>?${pc?` Also deletes <strong>${pc} part(s)</strong>.`:''}`,onConfirm:()=>{const delCust=S.customers.find(c=>c.id===id);const delCustParts=S.parts.filter(p=>p.custId===id);S.customers=S.customers.filter(c=>c.id!==id);S.parts=S.parts.filter(p=>p.custId!==id);if(delCust?._spId)spDeleteCustomer(delCust._spId).catch(e=>console.error('SP del cust:',e));delCustParts.forEach(p=>{if(p._spId)spDeletePart(p._spId).catch(e=>console.error('SP del part:',e));});render();}};render();}else if(action==='editPart'){S.masterPartEdit=id;render();}else if(action==='cancelPartEdit'){S.masterPartEdit=null;render();}else if(action==='savePart'){const pn=document.getElementById(`epn${id}`)?.value.trim();if(!pn)return;const idx=S.parts.findIndex(p=>p.id===id);if(idx>=0){S.parts[idx]={...S.parts[idx],custId:parseInt(document.getElementById(`epc${id}`)?.value)||S.parts[idx].custId,partNo:pn,desc:document.getElementById(`epd${id}`)?.value.trim()||''};spSavePart(S.parts[idx]).catch(e=>console.error('SP update part:',e));}S.masterPartEdit=null;render();}else if(action==='deletePart'){const part=S.parts.find(p=>p.id===id);const cust=S.customers.find(c=>c.id===part?.custId);S.modal={title:'Delete Part',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(part?.partNo)}</strong> (${esc(cust?.name||'?')})?`,onConfirm:()=>{const delPart=S.parts.find(p=>p.id===id);S.parts=S.parts.filter(p=>p.id!==id);if(delPart?._spId)spDeletePart(delPart._spId).catch(e=>console.error('SP del part:',e));render();}};render();}});
+      else if(action==='editCust'){S.masterCustEdit=id;render();}else if(action==='cancelCustEdit'){S.masterCustEdit=null;render();}else if(action==='saveCust'){const n=document.getElementById(`ecn${id}`)?.value.trim();if(!n)return;const idx=S.customers.findIndex(c=>c.id===id);if(idx>=0){S.customers[idx]={...S.customers[idx],name:n,contact:document.getElementById(`ecc${id}`)?.value.trim()||'',email:document.getElementById(`ece${id}`)?.value.trim()||''};persist(()=>spSaveCustomer(S.customers[idx]),'update cust');}S.masterCustEdit=null;render();}else if(action==='deleteCust'){const cust=S.customers.find(c=>c.id===id);const pc=S.parts.filter(p=>p.custId===id).length;S.modal={title:'Delete Customer',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(cust?.name)}</strong>?${pc?` Also deletes <strong>${pc} part(s)</strong>.`:''}`,onConfirm:()=>{const delCust=S.customers.find(c=>c.id===id);const delCustParts=S.parts.filter(p=>p.custId===id);S.customers=S.customers.filter(c=>c.id!==id);S.parts=S.parts.filter(p=>p.custId!==id);if(delCust?._spId)persist(()=>spDeleteCustomer(delCust._spId),'del cust');delCustParts.forEach(p=>{if(p._spId)persist(()=>spDeletePart(p._spId),'del part');});render();}};render();}else if(action==='editPart'){S.masterPartEdit=id;render();}else if(action==='cancelPartEdit'){S.masterPartEdit=null;render();}else if(action==='savePart'){const pn=document.getElementById(`epn${id}`)?.value.trim();if(!pn)return;const idx=S.parts.findIndex(p=>p.id===id);if(idx>=0){S.parts[idx]={...S.parts[idx],custId:parseInt(document.getElementById(`epc${id}`)?.value)||S.parts[idx].custId,partNo:pn,desc:document.getElementById(`epd${id}`)?.value.trim()||''};persist(()=>spSavePart(S.parts[idx]),'update part');}S.masterPartEdit=null;render();}else if(action==='deletePart'){const part=S.parts.find(p=>p.id===id);const cust=S.customers.find(c=>c.id===part?.custId);S.modal={title:'Delete Part',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(part?.partNo)}</strong> (${esc(cust?.name||'?')})?`,onConfirm:()=>{const delPart=S.parts.find(p=>p.id===id);S.parts=S.parts.filter(p=>p.id!==id);if(delPart?._spId)persist(()=>spDeletePart(delPart._spId),'del part');render();}};render();}});
   // ── IMPORT DOC BUTTON ──
   document.getElementById('importDocBtn')?.addEventListener('click',()=>{openImport();});
   document.getElementById('importShipDocBtn')?.addEventListener('click',()=>{openShipImport();});
@@ -2860,6 +3035,31 @@ else if(action==='reopenLine'){
 // ══════════════════════════════════════════════════════════════
 // APP STARTUP — load from SharePoint then render
 // ══════════════════════════════════════════════════════════════
+// ── Extra screen actions (history, older audit entries, dropdown lists, maintenance) ──
+document.addEventListener('click',async ev=>{
+  const t=ev.target.closest&&ev.target.closest('#histLoadBtn,#auditMoreBtn,#saveListsBtn,#rebuildColsBtn');if(!t)return;
+  try{
+    if(t.id==='histLoadBtn'){
+      const from=document.getElementById('histFrom').value,to=document.getElementById('histTo').value,m=document.getElementById('histMsg');
+      if(!from||!to||from>to){m.textContent='Choose a valid date range.';return;}
+      t.disabled=true;m.textContent='Loading…';
+      const n=await loadHistory(from,to);render();notice(`Loaded ${n} older order${n===1?'':'s'} (${from} to ${to}).`);
+    } else if(t.id==='auditMoreBtn'){
+      t.disabled=true;t.textContent='Loading…';await loadMoreAudit();render();
+    } else if(t.id==='saveListsBtn'){
+      const lines=id=>[...new Set(document.getElementById(id).value.split('\n').map(x=>x.trim()).filter(Boolean))];
+      const loc=lines('setLoc'),sh=lines('setShip'),m=document.getElementById('listsMsg');
+      if(!loc.length||!sh.length){m.textContent='Each list needs at least one item.';return;}
+      LOCATIONS.length=0;LOCATIONS.push(...loc);SHIP_TYPES.length=0;SHIP_TYPES.push(...sh);
+      m.textContent='Saving…';await persist(()=>spSaveSettings(),'dropdown lists');m.textContent=SAVE.failed.length?'Not saved — see the red bar.':'Saved.';
+    } else if(t.id==='rebuildColsBtn'){
+      const m=document.getElementById('rebuildMsg');t.disabled=true;let n=0;const total=S.orders.length+S.shipments.length;
+      for(const o of S.orders){if(!o._spId)continue;m.textContent=`Working… ${n}/${total}`;await persist(()=>spSaveOrder(o),'order '+o.customerPONo);n++;}
+      for(const x of S.shipments){if(!x._spId)continue;m.textContent=`Working… ${n}/${total}`;await persist(()=>spSaveShipment(x),'shipment '+x.shippingInvoiceNo);n++;}
+      m.textContent=SAVE.failed.length?'Finished with errors — see the red bar.':`Done: ${n} records updated.`;t.disabled=false;
+    }
+  }catch(e){notice('Could not complete: '+e.message,'warn');t.disabled=false;}
+});
 async function initApp(){
   // Auto-disable SharePoint if Flow URL not configured
   if(!FLOW_URL||FLOW_URL.startsWith('PASTE_')){
