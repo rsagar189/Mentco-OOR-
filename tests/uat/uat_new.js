@@ -46,7 +46,7 @@ function seedShip(i,date,po){
  // ---------- version, AI button hidden
  await nav(A,'orders');
  ok('UI-1',!(await A.$('#importDocBtn'))&&!(await A.$('#importShipDocBtn')),'AI import buttons are hidden');
- ok('UI-2',(await A.innerText('body')).includes('v1.1.0'),'version number is shown');
+ ok('UI-2',/v\d+\.\d+\.\d+/.test(await A.innerText('body')),'version number is shown');
  if(MODE==='on'){
   // ---------- settings: dropdown lists
   await nav(A,'masters');await A.click('[data-master-tab="lists"]');await sleep(200);
