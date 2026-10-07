@@ -566,38 +566,38 @@ async function spLoadAll(){
   // Load orders
   const orderItems=await flowCall('getItems',SP_LISTS.Orders);
   if(orderItems&&orderItems.length>0){
-    const orders=orderItems.map(i=>({...spDeserialize(i),_spId:i.ID})).filter(Boolean);
+    const orders=orderItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
     orders.forEach(o=>(o.lines||[]).forEach(l=>{l.usRate=l.usRate||0;l.indiaRate=l.indiaRate||0;}));
     if(orders.length>0){S.orders=orders;S.nextOrderId=Math.max(...orders.map(o=>o.id||0))+1;}
   }
   // Load shipments
   const shipItems=await flowCall('getItems',SP_LISTS.Shipments);
   if(shipItems&&shipItems.length>0){
-    const ships=shipItems.map(i=>({...spDeserialize(i),_spId:i.ID})).filter(Boolean);
+    const ships=shipItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
     if(ships.length>0){S.shipments=ships;S.nextShipId=Math.max(...ships.map(s=>s.id||0))+1;}
   }
   // Load customers
   const custItems=await flowCall('getItems',SP_LISTS.Customers);
   if(custItems&&custItems.length>0){
-    const custs=custItems.map(i=>({...spDeserialize(i),_spId:i.ID})).filter(Boolean);
+    const custs=custItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
     if(custs.length>0){S.customers=custs;S.nextCustId=Math.max(...custs.map(c=>c.id||0))+1;}
   }
   // Load parts
   const partItems=await flowCall('getItems',SP_LISTS.Parts);
   if(partItems&&partItems.length>0){
-    const parts=partItems.map(i=>({...spDeserialize(i),_spId:i.ID})).filter(Boolean);
+    const parts=partItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
     if(parts.length>0){S.parts=parts;S.nextPartId=Math.max(...parts.map(p=>p.id||0))+1;}
   }
   // Load users
   const userItems=isAdmin()?await flowCall('getItems',SP_LISTS.Users):[];
   if(userItems&&userItems.length>0){
-    const users=userItems.map(i=>({...spDeserialize(i),_spId:i.ID})).filter(Boolean);
+    const users=userItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
     if(users.length>0){USERS=users;S.nextUserId=Math.max(...users.map(u=>u.id||0))+1;}
   }
   // Load audit log
   const auditItems=await flowCall('getItems',SP_LISTS.AuditLog);
   if(auditItems&&auditItems.length>0){
-    const logs=auditItems.map(i=>({...spDeserialize(i),_spId:i.ID})).filter(Boolean);
+    const logs=auditItems.map(i=>({...spDeserialize(i),_spId:(i.ID??i.Id)})).filter(Boolean);
     if(logs.length>0){S.auditLog=logs.sort((a,b)=>b.id-a.id);S.nextAuditId=Math.max(...logs.map(l=>l.id||0))+1;}
   }
   // Rates (finance) live in their own list; only roles with finance access can read it
@@ -606,7 +606,7 @@ async function spLoadAll(){
     (finItems||[]).forEach(i=>{
       const f=spDeserialize(i);if(!f)return;
       const o=S.orders.find(x=>x.id===f.id);if(!o)return;
-      o._finSpId=i.ID;
+      o._finSpId=(i.ID??i.Id);
       (f.rates||[]).forEach((r,idx)=>{if(o.lines[idx]){o.lines[idx].usRate=r.us||0;o.lines[idx].indiaRate=r.in||0;}});
     });
   }
@@ -626,9 +626,9 @@ async function spSaveOrder(order){
     await flowCall('updateItem',SP_LISTS.Orders,{itemId:order._spId,...fields});
   } else {
     const created=await flowCall('createItem',SP_LISTS.Orders,fields);
-    order._spId=created.ID;
+    order._spId=(created.ID??created.Id);
     const idx=S.orders.findIndex(o=>o.id===order.id);
-    if(idx>=0)S.orders[idx]._spId=created.ID;
+    if(idx>=0)S.orders[idx]._spId=(created.ID??created.Id);
   }
   if(canFin())await spSaveFinance(order);
 }
@@ -639,9 +639,9 @@ async function spSaveFinance(order){
     await flowCall('updateItem',SP_LISTS.Finance,{itemId:order._finSpId,...fin});
   } else {
     const created=await flowCall('createItem',SP_LISTS.Finance,fin);
-    order._finSpId=created.ID;
+    order._finSpId=(created.ID??created.Id);
     const idx=S.orders.findIndex(o=>o.id===order.id);
-    if(idx>=0)S.orders[idx]._finSpId=created.ID;
+    if(idx>=0)S.orders[idx]._finSpId=(created.ID??created.Id);
   }
 }
 
@@ -652,9 +652,9 @@ async function spSaveShipment(ship){
     await flowCall('updateItem',SP_LISTS.Shipments,{itemId:ship._spId,...fields});
   } else {
     const created=await flowCall('createItem',SP_LISTS.Shipments,fields);
-    ship._spId=created.ID;
+    ship._spId=(created.ID??created.Id);
     const idx=S.shipments.findIndex(s=>s.id===ship.id);
-    if(idx>=0)S.shipments[idx]._spId=created.ID;
+    if(idx>=0)S.shipments[idx]._spId=(created.ID??created.Id);
   }
 }
 
@@ -676,9 +676,9 @@ async function spSaveCustomer(cust){
     await flowCall('updateItem',SP_LISTS.Customers,{itemId:cust._spId,...fields});
   } else {
     const created=await flowCall('createItem',SP_LISTS.Customers,fields);
-    cust._spId=created.ID;
+    cust._spId=(created.ID??created.Id);
     const idx=S.customers.findIndex(c=>c.id===cust.id);
-    if(idx>=0)S.customers[idx]._spId=created.ID;
+    if(idx>=0)S.customers[idx]._spId=(created.ID??created.Id);
   }
 }
 
@@ -694,9 +694,9 @@ async function spSavePart(part){
     await flowCall('updateItem',SP_LISTS.Parts,{itemId:part._spId,...fields});
   } else {
     const created=await flowCall('createItem',SP_LISTS.Parts,fields);
-    part._spId=created.ID;
+    part._spId=(created.ID??created.Id);
     const idx=S.parts.findIndex(p=>p.id===part.id);
-    if(idx>=0)S.parts[idx]._spId=created.ID;
+    if(idx>=0)S.parts[idx]._spId=(created.ID??created.Id);
   }
 }
 
@@ -712,9 +712,9 @@ async function spSaveUser(user){
     await flowCall('updateItem',SP_LISTS.Users,{itemId:user._spId,...fields});
   } else {
     const created=await flowCall('createItem',SP_LISTS.Users,fields);
-    user._spId=created.ID;
+    user._spId=(created.ID??created.Id);
     const idx=USERS.findIndex(u=>u.id===user.id);
-    if(idx>=0)USERS[idx]._spId=created.ID;
+    if(idx>=0)USERS[idx]._spId=(created.ID??created.Id);
   }
 }
 
@@ -727,7 +727,7 @@ async function spSaveAuditEntry(entry){
   if(!SP_ENABLED)return;
   const fields=spSerialize(entry,entry.id);
   const created=await flowCall('createItem',SP_LISTS.AuditLog,fields);
-  entry._spId=created.ID;
+  entry._spId=(created.ID??created.Id);
 }
 
 // ══════════════════════════════════════════════════════════════

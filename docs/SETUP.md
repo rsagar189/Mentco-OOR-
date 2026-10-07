@@ -67,12 +67,12 @@ Every **Response** step has header `Content-Type: application/json`.
 1. **Get session** — GET
    `_api/web/lists/getbytitle('POM_Sessions')/items?$filter=Title eq '@{replace(triggerBody()?['token'],'''','''''')}'&$top=1&$select=ID,Title,POM_Data`
 2. **Condition `Session valid`**:
-   `@if(greater(length(body('Get_session')?['value']),0), greater(ticks(json(first(body('Get_session')?['value'])?['POM_Data'])?['exp']), ticks(utcNow())), false)` is equal to `true`
+   `@if(greater(length(body('Get_session')?['value']),0), greater(json(first(body('Get_session')?['value'])?['POM_Data'])?['exp'], utcNow()), false)` is equal to `true`
 3. **No:** **Response** 401, Body `{"error":"Session expired"}`
 4. **Yes:**
    - Compose **`Role`**: `json(first(body('Get_session')?['value'])?['POM_Data'])?['role']`
    - **Condition `Is logout`**: action equals `logout` → **Yes:** HTTP to SharePoint POST
-     `_api/web/lists/getbytitle('POM_Sessions')/items(@{first(body('Get_session')?['value'])?['ID']})` with headers `IF-MATCH: *` and `X-HTTP-Method: DELETE`, then **Response** 200 body `{}`.
+     `_api/web/lists/getbytitle('POM_Sessions')/items(@{first(body('Get_session')?['value'])?['Id']})` with headers `IF-MATCH: *` and `X-HTTP-Method: DELETE`, then **Response** 200 body `{}`.
    - **No:** **Condition `Allowed`**:
      `@contains(split(coalesce(outputs('Perm')?[triggerBody()?['action']]?[triggerBody()?['listName']],''),','),outputs('Role'))` is equal to `true`
      - **No:** **Response** 403, Body `{"error":"Not allowed for your role"}`
