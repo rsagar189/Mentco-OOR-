@@ -1,0 +1,42 @@
+// UAT harness: runs the real index.html in headless Chrome against either a mock gateway or the real flow
+let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require('/opt/node-tools/node_modules/playwright'));}
+const crypto=require('crypto');const {execFileSync}=require('child_process');const fs=require('fs');
+const HASH=(e,p)=>crypto.pbkdf2Sync(p,'mentco-po:'+String(e).toLowerCase(),150000,32,'sha256').toString('hex');
+const PERM=JSON.parse(fs.readFileSync(__dirname+'/perm.json','utf8'));
+const MODE=process.env.UAT_MODE||'mock';
+const REAL_URL=process.env.POM_FLOW_URL;
+// ---- mock gateway
+const DB={};let nid=1;const sessions={};const L=n=>DB[n]=DB[n]||[];
+function seedMock(){L('POM_Users').push({ID:nid++,Title:'admin@uat.test',POM_Data:JSON.stringify({id:1,name:'UAT Admin',email:'admin@uat.test',passHash:HASH('admin@uat.test','pw'),role:'Admin'})});}
+function mockGw(b){
+ if(b.action==='login'){const u=L('POM_Users').find(x=>x.Title===b.email);const d=u&&JSON.parse(u.POM_Data);if(!d||d.passHash!==b.passHash)return[401,{error:'Invalid email or password'}];const t='tok'+Math.random();sessions[t]={role:d.role};return[200,{token:t,user:{id:d.id,name:d.name,email:d.email,role:d.role}}];}
+ const s=sessions[b.token];if(!s)return[401,{error:'Session expired'}];
+ if(b.action==='logout'){delete sessions[b.token];return[200,{}];}
+ if(!(PERM[b.action]?.[b.listName]||'').split(',').includes(s.role))return[403,{error:'Not allowed for your role'}];
+ const l=L(b.listName);
+ if(b.action==='getItems')return[200,{value:l}];
+ if(b.action==='createItem'){const it={ID:nid,Id:nid,Title:b.Title,POM_Data:b.POM_Data};nid++;l.push(it);return[200,it];}
+ if(b.action==='updateItem'){const it=l.find(x=>x.ID==b.itemId);it.Title=b.Title;it.POM_Data=b.POM_Data;return[200,{}];}
+ if(b.action==='deleteItem'){DB[b.listName]=l.filter(x=>x.ID!=b.itemId);return[200,{}];}
+}
+// ---- real flow relay (via curl so the container proxy is used; URL never printed)
+function realGw(body){
+ let out;
+ try{out=execFileSync('curl',['-sS','-m','90','-X','POST','-H','Content-Type: application/json','--data-binary','@-','-w','\n%{http_code}',REAL_URL],{input:JSON.stringify(body),env:process.env,maxBuffer:64*1024*1024,stdio:['pipe','pipe','pipe']}).toString();}
+ catch(e){throw new Error('curl failed: '+String(e.stderr||'').split('\n')[0].replace(REAL_URL,'<flow-url>').slice(0,200));}
+ const i=out.lastIndexOf('\n');const code=parseInt(out.slice(i+1));let txt=out.slice(0,i);let j;try{j=JSON.parse(txt)}catch{j=txt}
+ return[code,j,txt];
+}
+const calls=[];
+function gateway(b){const r=MODE==='real'?realGw(b):mockGw(b);calls.push({a:b.action,l:b.listName,s:r[0]});return r;}
+async function launch(){
+ const br=await chromium.launch({executablePath:process.env.UAT_CHROME||'/opt/pw-browsers/chromium-1194/chrome-linux/chrome',args:['--no-sandbox']});return br;}
+async function openApp(br,file){
+ const ctx=await br.newContext({viewport:{width:1500,height:1000},acceptDownloads:true});const pg=await ctx.newPage();pg.errs=[];pg.on('pageerror',e=>pg.errs.push(e.message));pg.on('dialog',d=>d.accept());
+ await pg.route('**/*',r=>{const u=r.request().url();
+  if(u==='https://flow.test/run'){const b=JSON.parse(r.request().postData());const [st,j,txt]=gateway(b);return r.fulfill({status:st,contentType:'application/json',body:typeof txt==='string'?txt:JSON.stringify(j)});}
+  return u.startsWith('file://')?r.continue():r.abort();});
+ await pg.goto('file://'+file);return pg;}
+const results=[];
+function ok(id,cond,msg,extra){results.push({id,pass:!!cond,msg,extra});console.log((cond?'PASS ':'FAIL ')+id+' '+msg+(cond?'':'  '+(extra||'')));}
+module.exports={launch,openApp,ok,results,HASH,MODE,DB,sessions,L,seedMock,calls,gateway};
