@@ -485,7 +485,7 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 // The flow is the only thing that touches SharePoint. It checks the login
 // token and the user's role on EVERY call (see docs/SETUP.md).
 
-// ★★★ PASTE YOUR POWER AUTOMATE FLOW URL BELOW ★★★
+// ★★★ PUT YOUR POWER AUTOMATE FLOW URL BETWEEN THE QUOTES ON THE NEXT LINE (the ONLY place to edit) ★★★
 const FLOW_URL = 'PASTE_YOUR_POWER_AUTOMATE_URL_HERE';
 
 let SP_ENABLED=true;
@@ -493,8 +493,8 @@ const SESSION={token:null};
 
 // Send a command to the Power Automate flow
 async function flowCall(action, listName, payload={}){
-  if(FLOW_URL==='PASTE_YOUR_POWER_AUTOMATE_URL_HERE'){
-    throw new Error('Power Automate URL not set. Open index.html in a text editor and replace PASTE_YOUR_POWER_AUTOMATE_URL_HERE with your Flow URL.');
+  if(!FLOW_URL||FLOW_URL.startsWith('PASTE_')){
+    throw new Error('Power Automate URL not set. Open index.html in Notepad, find the line starting with const FLOW_URL and put your flow address between the quote marks.');
   }
   const res=await fetch(FLOW_URL,{
     method:'POST',
@@ -2856,7 +2856,7 @@ else if(action==='reopenLine'){
 // ══════════════════════════════════════════════════════════════
 async function initApp(){
   // Auto-disable SharePoint if Flow URL not configured
-  if(FLOW_URL==='PASTE_YOUR_POWER_AUTOMATE_URL_HERE'){
+  if(!FLOW_URL||FLOW_URL.startsWith('PASTE_')){
     SP_ENABLED=false;
   }
   if(!SP_ENABLED){
