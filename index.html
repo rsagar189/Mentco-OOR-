@@ -491,6 +491,7 @@ const FLOW_URL = 'PASTE_YOUR_POWER_AUTOMATE_URL_HERE';
 // ── Switches. Both are ON for the upgraded flow + SharePoint columns (docs/FLOW_UPGRADE.md). ──
 const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLOW_UPGRADE step 1). Set false only if you use an old copy of the flow.
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
+const HARDENED_FLOW = false; // ON after the lockout / sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
 const APP_VERSION = '1.2.0';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 12;
@@ -583,7 +584,8 @@ const SP_LISTS={
   Users:'POM_Users',
   AuditLog:'POM_AuditLog',
   AppState:'POM_AppState',
-  Finance:'POM_Finance'
+  Finance:'POM_Finance',
+  Sessions:'POM_Sessions'
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -742,6 +744,13 @@ async function spCheckConflict(list,rec){
   const row=(rows||[]).find(r=>rowId(r)===rec._spId);
   const cur=row?spDeserialize(row):null;
   if(cur&&(cur._rev||0)!==(rec._rev||0)){const e=new Error('CONFLICT');e.conflict=true;e.rec=rec;throw e;}
+}
+// Sign a user out everywhere (used when an Admin deletes them, changes their role/email or resets their password)
+function revokeUserSessions(email){
+  if(!SP_ENABLED||!HARDENED_FLOW||!email)return;
+  email=String(email).toLowerCase();
+  if(S.user&&S.user.email&&S.user.email.toLowerCase()===email)return; // never sign yourself out
+  persist(()=>flowCall('revokeSessions',SP_LISTS.Sessions,{email}),'sign out '+email);
 }
 // One save at a time per record, so quick successive saves never look like a conflict with ourselves
 const _saveQ=new Map();
@@ -2915,11 +2924,13 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
       const idx=USERS.findIndex(u=>u.id===S.userEdit);
       if(idx>=0){
         if(USERS[idx].email!==email&&!password){showErr('Enter a new password when changing the email.');return;}
+        const before={email:USERS[idx].email,role:USERS[idx].role};
         USERS[idx].name=name;
         USERS[idx].email=email;
         USERS[idx].role=role;
-        if(password){USERS[idx].passHash=await hashPw(email,password);delete USERS[idx].password;}
+        if(password){USERS[idx].passHash=await hashPw(email,password);delete USERS[idx].password;delete USERS[idx].fails;delete USERS[idx].lockUntil;} // a password reset also unlocks the account
         persist(()=>spSaveUser(USERS[idx]),'update user');
+        if(password||before.role!==role||before.email!==email)revokeUserSessions(before.email); // they must sign in again
       }
       S.userEdit=null;
     } else {
@@ -3024,7 +3035,7 @@ else if(action==='reopenLine'){
         const usr=USERS.find(u=>u.id===id);
         S.modal={title:'Delete User',type:'danger',confirmLabel:'Yes, Delete',
           message:`Delete user <strong>${esc(usr?.name)}</strong> (${esc(usr?.email)})?<br><br>They will no longer be able to log in.`,
-          onConfirm:()=>{const delUser=USERS.find(u=>u.id===id);USERS=USERS.filter(u=>u.id!==id);if(delUser?._spId)persist(()=>spDeleteUser(delUser._spId),'del user');render();}};
+          onConfirm:()=>{const delUser=USERS.find(u=>u.id===id);USERS=USERS.filter(u=>u.id!==id);if(delUser?._spId)persist(()=>spDeleteUser(delUser._spId),'del user');if(delUser)revokeUserSessions(delUser.email);render();}};
         render();
       }
       else if(action==='editCust'){S.masterCustEdit=id;render();}else if(action==='cancelCustEdit'){S.masterCustEdit=null;render();}else if(action==='saveCust'){const n=document.getElementById(`ecn${id}`)?.value.trim();if(!n)return;const idx=S.customers.findIndex(c=>c.id===id);if(idx>=0){S.customers[idx]={...S.customers[idx],name:n,contact:document.getElementById(`ecc${id}`)?.value.trim()||'',email:document.getElementById(`ece${id}`)?.value.trim()||''};persist(()=>spSaveCustomer(S.customers[idx]),'update cust');}S.masterCustEdit=null;render();}else if(action==='deleteCust'){const cust=S.customers.find(c=>c.id===id);const pc=S.parts.filter(p=>p.custId===id).length;S.modal={title:'Delete Customer',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(cust?.name)}</strong>?${pc?` Also deletes <strong>${pc} part(s)</strong>.`:''}`,onConfirm:()=>{const delCust=S.customers.find(c=>c.id===id);const delCustParts=S.parts.filter(p=>p.custId===id);S.customers=S.customers.filter(c=>c.id!==id);S.parts=S.parts.filter(p=>p.custId!==id);if(delCust?._spId)persist(()=>spDeleteCustomer(delCust._spId),'del cust');delCustParts.forEach(p=>{if(p._spId)persist(()=>spDeletePart(p._spId),'del part');});render();}};render();}else if(action==='editPart'){S.masterPartEdit=id;render();}else if(action==='cancelPartEdit'){S.masterPartEdit=null;render();}else if(action==='savePart'){const pn=document.getElementById(`epn${id}`)?.value.trim();if(!pn)return;const idx=S.parts.findIndex(p=>p.id===id);if(idx>=0){S.parts[idx]={...S.parts[idx],custId:parseInt(document.getElementById(`epc${id}`)?.value)||S.parts[idx].custId,partNo:pn,desc:document.getElementById(`epd${id}`)?.value.trim()||''};persist(()=>spSavePart(S.parts[idx]),'update part');}S.masterPartEdit=null;render();}else if(action==='deletePart'){const part=S.parts.find(p=>p.id===id);const cust=S.customers.find(c=>c.id===part?.custId);S.modal={title:'Delete Part',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(part?.partNo)}</strong> (${esc(cust?.name||'?')})?`,onConfirm:()=>{const delPart=S.parts.find(p=>p.id===id);S.parts=S.parts.filter(p=>p.id!==id);if(delPart?._spId)persist(()=>spDeletePart(delPart._spId),'del part');render();}};render();}});

@@ -76,8 +76,8 @@ Each item is independent. All of these use Power Automate screens only; none tou
 3. **Weekly backup:** new **Scheduled cloud flow** (weekly) → **Get items** (SharePoint connector, one per list, set *Top
    Count* 5000 and enable *pagination* in ⋯ → Settings) → **Create CSV table** → **Create file** in a SharePoint document
    library (name with `formatDateTime(utcNow(),'yyyy-MM-dd')`). Keep at least 8 weeks.
-4. **Lockout after wrong passwords** and **"user still exists on every request"** need changes inside the login branch;
-   ask me for the exact steps when you are ready (they are not yet written or tested).
+4. **Lockout after wrong passwords** and **instant sign-out when a user is deleted or changed**: see **docs/FLOW_HARDENING.md**
+   (exact steps; the design is tested on a simulation, and the real test runs once you have applied them).
 
 ---
 ## What the switches do in the app

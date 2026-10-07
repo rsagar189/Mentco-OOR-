@@ -27,9 +27,19 @@ function applyQuery(items,q){
 }
 const colsOf=b=>{try{return b.Cols?JSON.parse(b.Cols):{};}catch{return{};}};
 function mockGw(b){
- if(b.action==='login'){const u=L('POM_Users').find(x=>x.Title===b.email);const d=u&&JSON.parse(u.POM_Data);if(!d||d.passHash!==b.passHash)return[401,{error:'Invalid email or password'}];const t='tok'+Math.random();sessions[t]={role:d.role};return[200,{token:t,user:{id:d.id,name:d.name,email:d.email,role:d.role}}];}
+ if(b.action==='login'){
+   const u=L('POM_Users').find(x=>x.Title===b.email);const d=u&&JSON.parse(u.POM_Data);
+   const HARD=process.env.MOCK_HARDENED==='1';
+   const locked=HARD&&d&&d.lockUntil&&d.lockUntil>new Date().toISOString();
+   if(d&&d.passHash===b.passHash&&!locked){
+     if(HARD&&(d.fails||0)>0){d.fails=0;d.lockUntil='';u.POM_Data=JSON.stringify(d);}
+     const t='tok'+Math.random();sessions[t]={role:d.role,email:d.email};return[200,{token:t,user:{id:d.id,name:d.name,email:d.email,role:d.role}}];}
+   if(HARD&&locked)return[429,{error:'Too many failed attempts. Try again in 15 minutes.'}];
+   if(HARD&&d){const n=(d.fails||0)+1;d.fails=n>4?0:n;d.lockUntil=n>4?new Date(Date.now()+15*60000).toISOString():'';u.POM_Data=JSON.stringify(d);}
+   return[401,{error:'Invalid email or password'}];}
  const s=sessions[b.token];if(!s)return[401,{error:'Session expired'}];
  if(b.action==='logout'){delete sessions[b.token];return[200,{}];}
+ if(b.action==='revokeSessions'){if(s.role!=='Admin')return[403,{error:'Not allowed for your role'}];for(const k of Object.keys(sessions))if(sessions[k].email===String(b.email).toLowerCase())delete sessions[k];return[200,{}];}
  if(!(PERM[b.action]?.[b.listName]||'').split(',').includes(s.role))return[403,{error:'Not allowed for your role'}];
  if(FAIL.action===b.action&&FAIL.remaining>0){FAIL.remaining--;return[500,{error:'simulated outage'}];}
  const l=L(b.listName);

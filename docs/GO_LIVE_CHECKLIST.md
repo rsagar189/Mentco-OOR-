@@ -25,6 +25,12 @@ Tick each box. "(me)" items are already done in the app; the rest are yours. Det
 - [x] AI import buttons hidden; version number shown top right
 - [x] Automated tests: `tests/uat/` (re-run before every update)
 
+## B2. Flow hardening (docs/FLOW_HARDENING.md) — do BEFORE putting the page on the internet
+- [ ] Part A: `Email` column + index on `POM_Sessions`
+- [ ] Part B: lockout steps in the flow
+- [ ] Part C: sign-out-on-change steps in the flow, then set `HARDENED_FLOW = true` in `index.html`
+- [ ] Real test run by me, passed
+
 ## C. Scale set-up (FLOW_UPGRADE.md)
 - [x] Step 1 done and tested on the real flow (`FLOW_QUERY = true`)
 - [x] Step 2 done and tested on the real flow: columns added, flow updated, `USE_COLUMNS = true` (real-system UAT 89/89, window test 11/11)
