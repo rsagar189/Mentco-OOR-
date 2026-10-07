@@ -8,17 +8,39 @@ const REAL_URL=process.env.POM_FLOW_URL;
 // ---- mock gateway
 const DB={};let nid=1;const sessions={};const L=n=>DB[n]=DB[n]||[];
 function seedMock(){L('POM_Users').push({ID:nid++,Title:'admin@uat.test',POM_Data:JSON.stringify({id:1,name:'UAT Admin',email:'admin@uat.test',passHash:HASH('admin@uat.test','pw'),role:'Admin'})});}
+const OLD_FLOW=process.env.MOCK_OLD_FLOW==='1',CAP=parseInt(process.env.MOCK_CAP||'5000');
+const FAIL={action:null,remaining:0};
+function applyQuery(items,q){
+  const p={};String(q).split('&').forEach(x=>{const i=x.indexOf('=');if(i>0)p[x.slice(0,i)]=x.slice(i+1);});
+  let out=items.slice();
+  if(p.$filter){
+    for(const c of p.$filter.replace(/[()]/g,'').split(/ and /)){
+      const m=c.trim().match(/^(\w+) (gt|lt|ge|le|eq) (.+)$/);if(!m)continue;
+      const [,f,op,raw]=m;let v=raw;const dm=raw.match(/^datetime'([^']*)'$/);
+      if(dm)v=dm[1].slice(0,10);else if(/^'.*'$/.test(raw))v=raw.slice(1,-1);else v=Number(raw);
+      out=out.filter(it=>{let x=f==='Id'?it.ID:it[f];if(x==null)return false;if(dm)x=String(x).slice(0,10);
+        return op==='gt'?x>v:op==='lt'?x<v:op==='ge'?x>=v:op==='le'?x<=v:x===v;});
+    }
+  }
+  const desc=/Id desc/.test(p.$orderby||'');out.sort((a,b)=>desc?b.ID-a.ID:a.ID-b.ID);
+  const top=parseInt(p.$top||'100000');return out.slice(0,top);
+}
+const colsOf=b=>{try{return b.Cols?JSON.parse(b.Cols):{};}catch{return{};}};
 function mockGw(b){
  if(b.action==='login'){const u=L('POM_Users').find(x=>x.Title===b.email);const d=u&&JSON.parse(u.POM_Data);if(!d||d.passHash!==b.passHash)return[401,{error:'Invalid email or password'}];const t='tok'+Math.random();sessions[t]={role:d.role};return[200,{token:t,user:{id:d.id,name:d.name,email:d.email,role:d.role}}];}
  const s=sessions[b.token];if(!s)return[401,{error:'Session expired'}];
  if(b.action==='logout'){delete sessions[b.token];return[200,{}];}
  if(!(PERM[b.action]?.[b.listName]||'').split(',').includes(s.role))return[403,{error:'Not allowed for your role'}];
+ if(FAIL.action===b.action&&FAIL.remaining>0){FAIL.remaining--;return[500,{error:'simulated outage'}];}
  const l=L(b.listName);
- if(b.action==='getItems')return[200,{value:l}];
- if(b.action==='createItem'){const it={ID:nid,Id:nid,Title:b.Title,POM_Data:b.POM_Data};nid++;l.push(it);return[200,it];}
- if(b.action==='updateItem'){const it=l.find(x=>x.ID==b.itemId);it.Title=b.Title;it.POM_Data=b.POM_Data;return[200,{}];}
+ if(b.action==='getItems'){
+   if(OLD_FLOW||!b.query)return[200,{value:l.slice(0,CAP)}];
+   return[200,{value:applyQuery(l,b.query)}];}
+ if(b.action==='createItem'){const it={ID:nid,Id:nid,Title:b.Title,POM_Data:b.POM_Data,...(OLD_FLOW?{}:colsOf(b))};nid++;l.push(it);return[200,it];}
+ if(b.action==='updateItem'){const it=l.find(x=>x.ID==b.itemId);it.Title=b.Title;it.POM_Data=b.POM_Data;if(!OLD_FLOW)Object.assign(it,colsOf(b));return[200,{}];}
  if(b.action==='deleteItem'){DB[b.listName]=l.filter(x=>x.ID!=b.itemId);return[200,{}];}
 }
+function seedRow(list,title,data,cols){const it={ID:nid,Id:nid,Title:title,POM_Data:typeof data==='string'?data:JSON.stringify(data),...(cols||{})};nid++;L(list).push(it);return it;}
 // ---- real flow relay (via curl so the container proxy is used; URL never printed)
 function realGw(body){
  let out;
@@ -28,7 +50,7 @@ function realGw(body){
  return[code,j,txt];
 }
 const calls=[];
-function gateway(b){const r=MODE==='real'?realGw(b):mockGw(b);calls.push({a:b.action,l:b.listName,s:r[0]});return r;}
+function gateway(b){const r=MODE==='real'?realGw(b):mockGw(b);calls.push({a:b.action,l:b.listName,s:r[0],bytes:b.action==='getItems'?JSON.stringify(r[1]).length:0});return r;}
 async function launch(){
  const br=await chromium.launch({executablePath:process.env.UAT_CHROME||'/opt/pw-browsers/chromium-1194/chrome-linux/chrome',args:['--no-sandbox']});return br;}
 async function openApp(br,file){
@@ -39,4 +61,4 @@ async function openApp(br,file){
  await pg.goto('file://'+file);return pg;}
 const results=[];
 function ok(id,cond,msg,extra){results.push({id,pass:!!cond,msg,extra});console.log((cond?'PASS ':'FAIL ')+id+' '+msg+(cond?'':'  '+(extra||'')));}
-module.exports={launch,openApp,ok,results,HASH,MODE,DB,sessions,L,seedMock,calls,gateway};
+module.exports={launch,openApp,ok,results,HASH,MODE,DB,sessions,L,seedMock,calls,gateway,seedRow,FAIL};

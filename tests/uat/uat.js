@@ -231,7 +231,8 @@ const ord=(pg,po)=>pg.evaluate(po=>{const o=S.orders.find(x=>x.customerPONo===po
  await settle(A);await settle(B2);
  const rr=await rows('POM_Orders');
  ok('DAT-2',rr.find(r=>r.title==='UAT-PO-001').data.lines[0].additionalNotes==='edited by A'&&rr.find(r=>r.title==='UAT-PO-002').data.lines[0].additionalNotes==='edited by B','two people editing different orders at once: both saved');
- // long text
+ // long text (reload first: the other browser changed this order, so our copy is stale)
+ await A.reload();await settle(A,1200);await sleep(500);
  const long='L'.repeat(2500);
  await A.evaluate(l=>{const o=S.orders.find(x=>x.customerPONo==='UAT-PO-002');o.lines[0].additionalNotes=l;return spSaveOrder(o);},long);await settle(A);
  const rl=(await rows('POM_Orders')).find(r=>r.title==='UAT-PO-002');
