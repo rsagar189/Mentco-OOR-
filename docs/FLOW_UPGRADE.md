@@ -11,7 +11,7 @@ matter once you have thousands of orders. Do them in order; each step has a swit
 | 3 | Optional hardening in the flow (lockout, session clean-up, failure email) | none |
 
 **Why:** today the flow reads at most 5,000 rows per list and cuts the rest off without telling anyone. With step 1
-the app reads every page. With step 2 it loads only open orders plus the last 12 months at sign-in, and
+the app reads every page. With step 2 it loads only open orders plus the last 24 months at sign-in, and
 older history on request. The app shows a yellow warning if it ever detects the 5,000 cut-off.
 
 > Do these steps **in the live flow only when nobody is using the app**, or copy the flow first
@@ -39,13 +39,14 @@ On the `PO-Manager` site, add these columns. **Names must be exact (no spaces).*
 | POM_Orders | `Customer` | Single line of text |
 | POM_Orders | `OrderDate` | Date and time → **Date only** |
 | POM_Orders | `Status` | Single line of text |
+| POM_Orders | `PartNos` | Single line of text (holds the part numbers of the order, used by "Find old orders by part number") |
 | POM_Shipments | `ShipDate` | Date and time → **Date only** |
 | POM_Shipments | `Status` | Single line of text |
 | POM_Finance | `OrderDate` | Date and time → **Date only** |
 
 Then **index** the ones used for searching (otherwise SharePoint refuses to search a list over 5,000 rows):
 list → ⚙ **Settings** → **List settings** → **Indexed columns** → **Create a new index** for:
-`POM_Orders`: `Status`, `OrderDate` · `POM_Shipments`: `ShipDate` · `POM_Finance`: `OrderDate`.
+`POM_Orders`: `Status`, `OrderDate`, `PartNos` · `POM_Shipments`: `ShipDate` · `POM_Finance`: `OrderDate`.
 Also create an index on **Title** for `POM_Users` and `POM_Sessions`.
 
 ### 2b. Flow (you)
@@ -84,5 +85,5 @@ Each item is independent. All of these use Power Automate screens only; none tou
 | Switch | Off | On |
 |---|---|---|
 | `FLOW_QUERY` | reads each list once (max 5,000 rows, with a yellow warning if it hits that); audit log trimmed in the browser | reads every page; newest-first audit log; checks for edit clashes between two people |
-| `USE_COLUMNS` | loads everything | loads open orders + last 12 months at sign-in; "Load older history" on Orders/Shipments; keeps the Status columns in step with shipments |
+| `USE_COLUMNS` | loads everything | loads open orders + last 24 months at sign-in; "Load older history" on Orders/Shipments; keeps the Status columns in step with shipments |
 | `AI_IMPORT` | document import buttons hidden | shown (needs an API key kept inside the flow — not built yet) |

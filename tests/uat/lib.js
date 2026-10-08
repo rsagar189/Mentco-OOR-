@@ -14,7 +14,8 @@ function applyQuery(items,q){
   const p={};String(q).split('&').forEach(x=>{const i=x.indexOf('=');if(i>0)p[x.slice(0,i)]=x.slice(i+1);});
   let out=items.slice();
   if(p.$filter){
-    for(const c of p.$filter.replace(/[()]/g,'').split(/ and /)){
+    for(const c of p.$filter.replace(/substringof\(('(?:[^']|'')*'),(\w+)\)/g,'SUBSTR[$1][$2]').replace(/[()]/g,'').split(/ and /)){
+      const sm=c.trim().match(/^SUBSTR\['(.*)'\]\[(\w+)\]$/);if(sm){const nd=sm[1].replace(/''/g,"'").toLowerCase();out=out.filter(it=>String(it[sm[2]]||'').toLowerCase().includes(nd));continue;}
       const m=c.trim().match(/^(\w+) (gt|lt|ge|le|eq) (.+)$/);if(!m)continue;
       const [,f,op,raw]=m;let v=raw;const dm=raw.match(/^datetime'([^']*)'$/);
       if(dm)v=dm[1].slice(0,10);else if(/^'.*'$/.test(raw))v=raw.slice(1,-1);else v=Number(raw);

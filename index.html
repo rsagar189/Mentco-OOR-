@@ -508,7 +508,7 @@ const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the f
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
 const APP_VERSION = '1.3.1';
-const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 12;
+const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
 const SESSION={token:null};
@@ -727,6 +727,32 @@ async function loadHistory(fromISO,toISO){
   if(S.window&&S.window.from&&fromISO<S.window.from)S.window.from=fromISO;
   return add.length;
 }
+// Find older orders that contain a part number (searched in 6-month slices so SharePoint's 5,000-row limit is never hit)
+async function findOldByPart(part,fromISO){
+  const q=String(part).trim().replace(/'/g,"''");if(!q)return 0;
+  const known=new Set(S.orders.map(o=>o._spId));const found=[];
+  let hi=S.window&&S.window.from?S.window.from:addDaysISO(cutoffISO(0),1);
+  while(hi>fromISO){
+    const lo=addDaysISO(hi,-183)<fromISO?fromISO:addDaysISO(hi,-183);
+    const rows=await spFetchAll(SP_LISTS.Orders,`${dtq('OrderDate','ge',lo)} and ${dtq('OrderDate','lt',hi)} and substringof('${q}',PartNos)`);
+    rows.forEach(r=>{if(!known.has(rowId(r))){known.add(rowId(r));found.push(r);}});
+    hi=lo;
+  }
+  const add=found.map(rowToRec).filter(o=>o.id!==undefined);add.forEach(fixRates);
+  if(!add.length)return 0;
+  const ds=add.map(o=>isoDay(o.orderDate)).filter(validDay).sort();
+  const knownS=new Set(S.shipments.map(x=>x._spId));
+  if(ds[0]){
+    const [shipRows,finRows]=await Promise.all([
+      spFetchAll(SP_LISTS.Shipments,`${dtq('ShipDate','ge',addDaysISO(ds[0],-30))} and ${dtq('ShipDate','lt',addDaysISO(S.window.from,-30))}`),
+      canFin()?spFetchAll(SP_LISTS.Finance,`${dtq('OrderDate','ge',ds[0])} and ${dtq('OrderDate','lt',S.window.from)}`):Promise.resolve([])
+    ]);
+    S.shipments=S.shipments.concat(shipRows.map(rowToRec).filter(x=>x.id!==undefined&&!knownS.has(x._spId)));
+    applyFinance(finRows);
+  }
+  S.orders=S.orders.concat(add);syncShipmentsToOrders();
+  return add.length;
+}
 async function loadMoreAudit(){
   const rows=await spFetchLatest(SP_LISTS.AuditLog,AUDIT_PAGE,S.auditMinSpId);
   const have=new Set(S.auditLog.map(e=>e.id));
@@ -772,6 +798,7 @@ function serialSave(key,fn){const prev=_saveQ.get(key)||Promise.resolve();const 
 function knownRev(list,rec){const cur=(list==='o'?S.orders:S.shipments).find(x=>x.id===rec.id);if(cur&&cur!==rec)rec._rev=Math.max(rec._rev||0,cur._rev||0);}
 const stripLocal=o=>{const c=cloneObj(o);['_spId','_finSpId','_colStatus','_forceSave'].forEach(k=>delete c[k]);return c;};
 function shipStatus(sh){return(sh.lines||[]).length&&sh.lines.every(l=>l.deliveryStatus==='Delivered')?'Delivered':'In Transit';}
+function partNosCol(o){const ps=[...new Set((o.lines||[]).map(l=>String(l.partNo||'').trim()).filter(Boolean))];let out=';';for(const x of ps){if((out+x+';').length>250)break;out+=x+';';}return out;}
 function spSaveOrder(order){return serialSave('o'+order.id,()=>spSaveOrderNow(order));}
 async function spSaveOrderNow(order){
   if(!SP_ENABLED)return;
@@ -781,7 +808,7 @@ async function spSaveOrderNow(order){
   const clean=stripLocal(order);clean._rev=nextRev;
   clean.lines=(clean.lines||[]).map(l=>{const c={...l};delete c.usRate;delete c.indiaRate;return c;});
   const fields=spSerialize(clean,order.customerPONo||order.id);
-  if(USE_COLUMNS){const c={Customer:String(order.customerName||'').slice(0,250),Status:status};if(validDay(order.orderDate))c.OrderDate=isoDay(order.orderDate)+'T00:00:00Z';fields.Cols=JSON.stringify(c);}
+  if(USE_COLUMNS){const c={Customer:String(order.customerName||'').slice(0,250),Status:status,PartNos:partNosCol(order)};if(validDay(order.orderDate))c.OrderDate=isoDay(order.orderDate)+'T00:00:00Z';fields.Cols=JSON.stringify(c);}
   if(order._spId){
     await flowCall('updateItem',SP_LISTS.Orders,{itemId:order._spId,...fields});
   } else {
@@ -2844,7 +2871,7 @@ function overShipWarning(sh){
 function historyPanelHTML(){
   if(!USE_COLUMNS||!S.window||S.window.full||!S.window.from)return'';
   const to=addDaysISO(S.window.from,-1);
-  return`<div style="background:var(--info-l);border:1px solid var(--accent-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span>Showing open orders and everything since <b>${esc(S.window.from)}</b>. Older records are not loaded.</span><label>From <input type="date" id="histFrom" value="${esc(addDaysISO(S.window.from,-365))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><label>To <input type="date" id="histTo" value="${esc(to)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histLoadBtn">Load older history</button><span id="histMsg" style="color:var(--muted)"></span></div>`;
+  return`<div style="background:var(--info-l);border:1px solid var(--accent-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span>Showing open orders and everything since <b>${esc(S.window.from)}</b>. Older records are not loaded.</span><label>From <input type="date" id="histFrom" value="${esc(addDaysISO(S.window.from,-365))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><label>To <input type="date" id="histTo" value="${esc(to)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histLoadBtn">Load older history</button><span id="histMsg" style="color:var(--muted)"></span><div style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-top:1px solid var(--accent-mid);padding-top:8px"><b>Find old orders by part number</b><input id="histPart" placeholder="Part number" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"><label>Search back to <input type="date" id="histPartFrom" value="${esc(addDaysISO(S.window.from,-1825))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histPartBtn">Find &amp; load</button><span id="histPartMsg" style="color:var(--muted)"></span></div></div>`;
 }
 function mastersHTML(){const tab=S.masterTab;return`<div style="display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);width:fit-content;overflow:hidden"><button class="btn${tab==='customers'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none" data-master-tab="customers">Customers (${S.customers.length})</button><button class="btn${tab==='parts'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="parts">Part Numbers (${S.parts.length})</button><button class="btn${tab==='lists'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="lists">Dropdown lists</button></div>${tab==='customers'?custMasterHTML():tab==='lists'?listsMasterHTML():partMasterHTML()}`;}
 function custMasterHTML(){return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Add Customer</span></div><div class="master-form"><div style="display:grid;grid-template-columns:1.5fr 1fr 1.2fr auto;gap:8px;align-items:flex-end"><div class="fg"><label>Name *</label><input id="newCustName" placeholder="Acme Corp" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Contact</label><input id="newCustContact" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Email</label><input id="newCustEmail" type="email" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><button class="btn btn-primary btn-sm" id="addCustBtn" style="height:36px">+ Add</button></div><div id="custAddErr" style="display:none;color:var(--danger);font-size:12px;margin-top:6px"></div></div></div><div class="master-card"><div class="master-card-header"><span class="master-card-title">All Customers</span><span class="badge b-gray">${S.customers.length}</span></div><div class="master-list">${S.customers.map(c=>{const isEd=S.masterCustEdit===c.id;const pc=S.parts.filter(p=>p.custId===c.id).length;return`<div class="master-row">${isEd?`<div class="inline-edit-row"><input class="edit-input" id="ecn${c.id}" value="${esc(c.name)}" style="flex:1.5"><input class="edit-input" id="ecc${c.id}" value="${esc(c.contact)}" style="flex:1"><input class="edit-input" id="ece${c.id}" value="${esc(c.email)}" type="email" style="flex:1.2"><button class="btn btn-success btn-sm" data-action="saveCust" data-id="${c.id}">Save</button><button class="btn btn-secondary btn-sm" data-action="cancelCustEdit">Cancel</button></div>`:`<div class="master-row-info"><span class="master-row-name">${esc(c.name)}</span><span class="master-row-sub">${esc(c.contact||'-')} - ${pc} part${pc!==1?'s':''}</span></div><div class="master-row-actions"><button class="btn btn-secondary btn-sm" data-action="editCust" data-id="${c.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="deleteCust" data-id="${c.id}">Delete</button></div>`}</div>`;}).join('')||`<div class="empty">No customers.</div>`}</div></div></div>`;}
@@ -3062,13 +3089,20 @@ else if(action==='reopenLine'){
 // ══════════════════════════════════════════════════════════════
 // ── Extra screen actions (history, older audit entries, dropdown lists, maintenance) ──
 document.addEventListener('click',async ev=>{
-  const t=ev.target.closest&&ev.target.closest('#histLoadBtn,#auditMoreBtn,#saveListsBtn,#rebuildColsBtn');if(!t)return;
+  const t=ev.target.closest&&ev.target.closest('#histLoadBtn,#histPartBtn,#auditMoreBtn,#saveListsBtn,#rebuildColsBtn');if(!t)return;
   try{
     if(t.id==='histLoadBtn'){
       const from=document.getElementById('histFrom').value,to=document.getElementById('histTo').value,m=document.getElementById('histMsg');
       if(!from||!to||from>to){m.textContent='Choose a valid date range.';return;}
       t.disabled=true;m.textContent='Loading…';
       const n=await loadHistory(from,to);render();notice(`Loaded ${n} older order${n===1?'':'s'} (${from} to ${to}).`);
+    } else if(t.id==='histPartBtn'){
+      const part=document.getElementById('histPart').value.trim(),from=document.getElementById('histPartFrom').value,m=document.getElementById('histPartMsg');
+      if(!part||!from){m.textContent='Type a part number and choose a start date.';return;}
+      t.disabled=true;m.textContent='Searching…';
+      const n=await findOldByPart(part,from);
+      const lc=part.toLowerCase();S.filters.partNos=[...new Set(S.orders.flatMap(o=>o.lines.map(l=>l.partNo)).filter(x=>x&&String(x).toLowerCase().includes(lc)))];
+      S.page='orders';render();notice(`Found ${n} older order${n===1?'':'s'} with part "${part}" (back to ${from}). The Orders list is now filtered to that part — press Clear to see all.`);
     } else if(t.id==='auditMoreBtn'){
       t.disabled=true;t.textContent='Loading…';await loadMoreAudit();render();
     } else if(t.id==='saveListsBtn'){

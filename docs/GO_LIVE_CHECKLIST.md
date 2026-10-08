@@ -18,7 +18,7 @@ Tick each box. "(me)" items are already done in the app; the rest are yours. Det
 - [x] Failed saves show a red "NOT saved" bar with Retry; closing the tab warns if something is unsaved
 - [x] Two people editing the same record get a warning (needs `FLOW_QUERY`)
 - [x] Reads every page; warns if a list is cut off at 5,000 rows
-- [x] Open orders + last 12 months at sign-in, older history on request (needs `USE_COLUMNS`)
+- [x] Open orders + last 24 months at sign-in, older history on request, and "Find old orders by part number" (needs `USE_COLUMNS` and the `PartNos` column on POM_Orders)
 - [x] Audit log loads 200 at a time
 - [x] Warnings for duplicate PO numbers and over-shipping
 - [x] Dropdown lists (locations, shipment types) editable by Admin (Master Data → Dropdown lists)
@@ -52,4 +52,4 @@ Tick each box. "(me)" items are already done in the app; the rest are yours. Det
 - Lockout after repeated wrong passwords is not built yet (use long passwords).
 - Deleting a user does not end an already-open session (up to 12 hours).
 - Staff "partial edit" limits and audit entries are still enforced in the browser, not in the flow.
-- Dashboard totals cover loaded data only (open orders + 12 months, plus anything you load from history).
+- Dashboard totals cover loaded data only (open orders + 24 months, plus anything you load from history).
