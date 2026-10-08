@@ -42,6 +42,11 @@ const download=async(pg,fn)=>{const [d]=await Promise.all([pg.waitForEvent('down
  await A.click('#cancelOrderBtn');await sleep(250);await H.confirmModal(A);await sleep(800);
  a=await ord(A,'UAT-RXA');const st=(sp('getItems','POM_Orders')[1].value||[]).find(i=>i.Title==='UAT-RXA');
  ok('RX-4',a.lines.every(l=>l.lineStatus==='Cancelled')&&st&&/Cancelled/.test(st.POM_Data),'Cancel PO cancels every open line and saves',JSON.stringify(a.lines.map(l=>l.lineStatus)));
+ ok('RX-4b',await A.evaluate(()=>S.page==='view-order'&&!document.getElementById('cancelOrderBtn')&&!!document.getElementById('reopenOrderBtn')),'after Cancel PO the page shows CANCELLED and a Reopen PO button');
+ await A.click('#reopenOrderBtn');await sleep(250);await H.confirmModal(A);await sleep(800);
+ a=await ord(A,'UAT-RXA');
+ ok('RX-4c',a.lines.every(l=>l.lineStatus==='Open')&&!!(await A.$('#cancelOrderBtn')),'Reopen PO reopens every cancelled line and shows Cancel PO again',JSON.stringify(a.lines.map(l=>l.lineStatus)));
+ await A.click('#cancelOrderBtn');await sleep(250);await H.confirmModal(A);await sleep(800);
  // ---- filters
  await nav(A,'orders');await sleep(300);
  const rowsOf=()=>A.evaluate(()=>(document.body.innerText.match(/Showing\s+(\d+)\s+of\s+(\d+)/)||[]).slice(1,3).map(Number));

@@ -626,7 +626,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.7.3';
+const APP_VERSION = '1.7.4';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -2585,13 +2585,13 @@ function orderFormHTML(){
     <button class="btn btn-secondary btn-sm" id="backBtn">Back</button>
     ${isView&&o.customerPONo?`<button class="btn btn-primary btn-sm" id="newShipFromOrderBtn">+ New Shipment for this PO</button>`:''}
     ${isAdmin()&&isView?`<button class="btn btn-warn btn-sm" id="relinkAllOrderLinesBtn" data-id="${o.id}">Re-link All Lines</button>`:''}
-    ${isAdmin()&&isView&&o.orderStatus!=='Cancelled'?`<button class="btn btn-danger btn-sm" id="cancelOrderBtn" data-id="${o.id}">Cancel PO</button>`:''}
-    ${isAdmin()&&isView&&o.orderStatus==='Cancelled'?`<span class="badge b-red" style="font-size:12px;padding:5px 12px">CANCELLED</span><button class="btn btn-secondary btn-sm" id="reopenOrderBtn" data-id="${o.id}">Reopen PO</button>`:''}
+    ${isAdmin()&&isView&&orderStatus(o)!=='Cancelled'?`<button class="btn btn-danger btn-sm" id="cancelOrderBtn" data-id="${o.id}">Cancel PO</button>`:''}
+    ${isAdmin()&&isView&&orderStatus(o)==='Cancelled'?`<span class="badge b-red" style="font-size:12px;padding:5px 12px">CANCELLED</span><button class="btn btn-secondary btn-sm" id="reopenOrderBtn" data-id="${o.id}">Reopen PO</button>`:''}
   </div>`:'';
 
   // ── BANNERS ──
   const banners=`
-    ${o.orderStatus==='Cancelled'?`<div style="background:var(--danger-l);border:1px solid var(--danger-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><strong>This PO is Cancelled.</strong> Use Reopen PO to restore it.</span></div>`:''}
+    ${orderStatus(o)==='Cancelled'?`<div style="background:var(--danger-l);border:1px solid var(--danger-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><strong>This PO is Cancelled.</strong> Use Reopen PO to restore it.</span></div>`:''}
     ${isAdmin()&&isView?`<div style="background:var(--warn-l);border:1px solid #fde68a;border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--warn)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg><span><strong>Admin Re-link:</strong> Use Re-link All Lines to change Customer PO No, Part No, or Shipment links.</span></div>`:''}
     ${staffOrderPartial?`<div style="background:var(--accent-l);border:1px solid #bfdbfe;border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--accent);display:flex;align-items:center;gap:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg><span><strong>Staff Update Mode:</strong> Editable per line: Shipment Type, In Transit Days, Ship Date 1, Revised Ship Date 2, US Sales Order #, US QB PO #, India Rate, US Rate, Short Close Qty.</span></div>`:''}`;
 
@@ -3040,6 +3040,22 @@ function collectOrderForm(){const o=cloneObj(S.editing||{lines:[],consignment:fa
 function collectShipmentForm(){const sh=cloneObj(S.editingShipment||{lines:[],kanban:false});document.querySelectorAll('[data-sf]').forEach(el=>{const f=el.dataset.sf;if(!f)return;let val=el.type==='checkbox'?el.checked:el.value;if(f.startsWith('slines.')){const pts=f.split('.');const idx=parseInt(pts[1]);const sub=pts[2];while(sh.lines.length<=idx)sh.lines.push(emptyShipLine(sh.lines.length+1));if(sub==='shippedQty')sh.lines[idx][sub]=parseFloat(val)||0;else if(sub==='orderLineNo')sh.lines[idx][sub]=val===''?null:parseInt(val);else sh.lines[idx][sub]=val;}else sh[f]=val;});return sh;}
 function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEventListener('click',()=>{const pg=el.dataset.nav;if(pg==='new-order')S.editing={lines:[emptyLine(1)],consignment:false,orderDate:today()};if(pg==='new-shipment')S.editingShipment={lines:[emptyShipLine(1)],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.page=pg;render();});});
   document.getElementById('logoutBtn')?.addEventListener('click',()=>{if(SP_ENABLED&&SESSION.token)flowCall('logout','').catch(()=>{});SESSION.token=null;S.user=null;clearSession();S.page='login';S.loginMsg='';S.orders=[];S.shipments=[];S.auditLog=[];render();});
+  document.getElementById('reopenOrderBtn')?.addEventListener('click',()=>{
+    const id=parseInt(document.getElementById('reopenOrderBtn').dataset.id);
+    const ord=S.orders.find(o=>o.id===id);
+    if(!ord||!isAdmin())return;
+    S.modal={title:'Reopen PO',type:'warn',confirmLabel:'Yes, Reopen PO',
+      message:`Reopen all cancelled lines in <strong>${esc(ord.customerPONo)}</strong>?`,
+      onConfirm:()=>{
+        const changes=[];
+        ord.lines.forEach((l,i)=>{if(l.lineStatus==='Cancelled'){changes.push({field:`Line ${i+1} (${l.partNo||'?'}) Line Status`,from:'Cancelled',to:'Open'});l.lineStatus='Open';l.shortCloseQty=0;}});
+        syncShipmentsToOrders();
+        if(changes.length)auditLog('order',ord.id,ord.customerPONo,'Reopened',changes);
+        persist(()=>spSaveOrder(ord),'save reopen PO');
+        S.editing=cloneObj(ord);
+        render();
+      }};render();
+  });
   document.getElementById('cancelOrderBtn')?.addEventListener('click',()=>{
     const id=parseInt(document.getElementById('cancelOrderBtn').dataset.id);
     const ord=S.orders.find(o=>o.id===id);
@@ -3052,6 +3068,7 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
         syncShipmentsToOrders();
         if(changes.length)auditLog('order',ord.id,ord.customerPONo,'Cancelled',changes);
         persist(()=>spSaveOrder(ord),'save cancel PO');
+        S.editing=cloneObj(ord);
         render();
       }};render();
   });
