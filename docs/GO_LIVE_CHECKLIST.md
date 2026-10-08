@@ -26,10 +26,10 @@ Tick each box. "(me)" items are already done in the app; the rest are yours. Det
 - [x] Automated tests: `tests/uat/` (re-run before every update)
 
 ## B2. Flow hardening (docs/FLOW_HARDENING.md) — do BEFORE putting the page on the internet
-- [ ] Part A: `Email` column + index on `POM_Sessions`
-- [ ] Part B: lockout steps in the flow
-- [ ] Part C: sign-out-on-change steps in the flow, then set `HARDENED_FLOW = true` in `index.html`
-- [ ] Real test run by me, passed
+- [x] Part A: `Email` column + index on `POM_Sessions`
+- [x] Part B: lockout steps in the flow (real test: 9/9)
+- [x] Part C: sign-out-on-change steps in the flow (real test: 12/12), `HARDENED_FLOW = true`
+- [x] App-level real test through the screens: 14/14
 
 ## C. Scale set-up (FLOW_UPGRADE.md)
 - [x] Step 1 done and tested on the real flow (`FLOW_QUERY = true`)
