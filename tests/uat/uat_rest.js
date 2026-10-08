@@ -52,6 +52,8 @@ const download=async(pg,fn)=>{const [d]=await Promise.all([pg.waitForEvent('down
  const rowsOf=()=>A.evaluate(()=>(document.body.innerText.match(/Showing\s+(\d+)\s+of\s+(\d+)/)||[]).slice(1,3).map(Number));
  await A.fill('#searchInput','UAT-RXB');await sleep(500);const s1=await rowsOf();
  ok('RX-5a',s1[0]===1,'search "UAT-RXB" shows exactly 1 order',JSON.stringify(s1));
+ await A.fill('#searchInput','uat-rx-p1');await sleep(500);const spn=await rowsOf();
+ ok('RX-5e',spn[0]===2,'search also finds a PART number (not case sensitive): "uat-rx-p1" shows both test orders',JSON.stringify(spn));
  await A.fill('#searchInput','UAT-RX');await sleep(500);const s2=await rowsOf();
  ok('RX-5b',s2[0]===2,'search "UAT-RX" shows both test orders',JSON.stringify(s2));
  await A.click('#filterToggleBtn');await sleep(250);
