@@ -1,5 +1,7 @@
 # Flow change: send deleted records to the SharePoint Recycle Bin (about 10 minutes)
 
+**Status: done and verified on 8 October 2026.**
+
 **Why.** Tested on 8 October 2026: a customer deleted through the app did **not** appear in the SharePoint Recycle Bin.
 The flow's `deleteItem` case uses the REST verb DELETE, which removes the item for good. Version history only covers edits.
 This change makes deleted orders, shipments, customers, parts and users recoverable for the Recycle Bin's retention period
