@@ -81,6 +81,47 @@ const download=async(pg,fn)=>{const [d]=await Promise.all([pg.waitForEvent('down
  {const w=await P.evaluate(()=>({sw:document.documentElement.scrollWidth,iw:innerWidth,inputs:[...document.querySelectorAll('input,select')].filter(e=>e.getBoundingClientRect().right>innerWidth+2).length}));ok('RX-8-neworder','sw' in w&&w.sw<=w.iw+2&&w.inputs===0,'phone: new-order form fits the screen',JSON.stringify(w));}
  await P.screenshot({path:process.env.SHOT_DIR?process.env.SHOT_DIR+'/phone.png':'/tmp/phone.png'});
 
+
+ // ---- function improvements: chips, click-through, sorting, empty state, saving indicator
+ await createOrder(A,{cust:'UAT-RX Co',po:'UAT-RXC',lines:[{part:'UAT-RX-P1',qty:10,inr:5,us:9,dock:'2020-01-15'}]});
+ await A.evaluate(()=>{const o=S.orders.find(x=>x.customerPONo==='UAT-RXC');o.lines[0].shipDate1='2020-01-01';});
+ await nav(A,'orders');await sleep(300);
+ await A.evaluate(()=>{S.filters=EMPTY_FILTERS();S.search='';render();});await sleep(200);
+ const chipTxt=await A.$$eval('.qchip',e=>e.map(x=>x.innerText.replace(/\s+/g,' ').trim()));
+ ok('FN-1',chipTxt.length===5&&/^All/.test(chipTxt[0])&&/Overdue/.test(chipTxt[2])&&/In transit/.test(chipTxt[3]),'Orders page has the quick chips All / Open / Overdue / In transit / Closed',JSON.stringify(chipTxt));
+ const pos=()=>A.evaluate(()=>applyOrderFilters(S.orders).map(o=>o.customerPONo).filter(p=>/^UAT-RX[ABC]$/.test(p)).sort());
+ await A.click('[data-quick="overdue"]');await sleep(250);
+ ok('FN-2',JSON.stringify(await pos())==='["UAT-RXC"]','Overdue chip shows only the overdue order',JSON.stringify(await pos()));
+ await A.click('[data-quick="transit"]');await sleep(250);
+ ok('FN-3',JSON.stringify(await pos())==='["UAT-RXB"]','In transit chip shows only the order with goods on the way',JSON.stringify(await pos()));
+ await A.click('[data-quick="open"]');await sleep(250);
+ ok('FN-4',JSON.stringify(await pos())==='["UAT-RXB","UAT-RXC"]','Open chip hides the cancelled order',JSON.stringify(await pos()));
+ await A.click('[data-quick="closed"]');await sleep(250);ok('FN-5',(await pos()).length===0&&/No orders match your filters/.test(await A.innerText('.table-wrap')),'Closed chip + empty message "No orders match your filters"');
+ await A.click('[data-quick="all"]');await sleep(250);
+ ok('FN-6',(await pos()).length===3,'All chip shows everything again');
+ // sorting
+ const firstPO=()=>A.evaluate(()=>{const r=[...document.querySelectorAll('.dt tbody tr')].map(tr=>tr.children[2]&&tr.children[2].innerText.trim()).filter(x=>/^UAT-RX[ABC]$/.test(x));return r.join(',');});
+ await A.click('th.sortable:has-text("Customer PO No")');await sleep(250);const asc=await firstPO();
+ await A.click('th.sortable:has-text("Customer PO No")');await sleep(250);const desc=await firstPO();
+ ok('FN-7',asc==='UAT-RXA,UAT-RXB,UAT-RXC'&&desc==='UAT-RXC,UAT-RXB,UAT-RXA','clicking the PO heading sorts A→Z then Z→A',asc+' | '+desc);
+ await A.click('th.sortable:has-text("Customer PO No")');await sleep(200);
+ ok('FN-8',await A.evaluate(()=>getComputedStyle(document.querySelector('.dt thead')).position)==='sticky'&&await A.$('.table-wrap.tall')!==null,'table header stays visible (sticky) in a scrolling table');
+ // dashboard click-through
+ await nav(A,'dashboard');await sleep(400);
+ await A.click('.stat-card.clickable:has-text("Overdue PO Lines")');await sleep(300);
+ ok('FN-9',await A.evaluate(()=>S.page==='orders'&&S.filters.dueWindow==='overdue'),'clicking the dashboard Overdue card opens Orders filtered to overdue');
+ await nav(A,'dashboard');await sleep(400);
+ await A.click('.mini-table tr.clickable:has-text("UAT-RXC")');await sleep(300);
+ ok('FN-10',await A.evaluate(()=>S.page==='view-order'&&S.editing&&S.editing.customerPONo==='UAT-RXC'),'clicking an overdue line on the dashboard opens that order');
+ await nav(A,'dashboard');await sleep(300);await A.click('.stat-card.clickable:has-text("In Transit US")').catch(()=>{});await sleep(300);
+ ok('FN-11',await A.evaluate(()=>S.page==='shipments'&&(S.shipFilters.deliveryStatuses||[]).includes('In Transit')),'clicking the In Transit card opens Shipments filtered to In Transit');
+ // empty state
+ await nav(A,'orders');await sleep(200);
+ const empty=await A.evaluate(()=>{const o=S.orders;S.orders=[];S.filters=EMPTY_FILTERS();render();const t=document.body.innerText;S.orders=o;render();return t;});
+ ok('FN-12',/No orders yet/.test(empty)&&/New Order/.test(empty),'with no orders the page says "No orders yet" and offers a New Order button');
+ // saving indicator
+ const ind=await A.evaluate(async()=>{const p=persist(()=>new Promise(r=>setTimeout(r,600)),'indicator test');await new Promise(r=>setTimeout(r,100));const a=document.getElementById('saveInd').innerText;await p;const b=document.getElementById('saveInd').innerText;return [a,b];});
+ ok('FN-13',ind[0]==='Saving…'&&/Saved/.test(ind[1]),'a "Saving…" then "Saved ✓" indicator appears while saving',JSON.stringify(ind));
  // ---- find OLD orders by part number (outside the 24-month window)
  const old=n=>{const d=new Date();d.setMonth(d.getMonth()-n);d.setDate(10);return d.toISOString().slice(0,10);};
  const mkO=(id,po,part,date)=>({id,customerName:'UAT-RX Co',customerPONo:po,orderDate:date,buyerName:'B',saved:true,_rev:1,lines:[{lineNo:1,partNo:part,poQty:5,delivered:5,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:10,originalDockDate:date,additionalNotes:'',lineStatus:'Open',shortCloseQty:0}]});

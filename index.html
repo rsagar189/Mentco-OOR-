@@ -259,6 +259,20 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .dt th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:11px 14px;text-align:left;border-bottom:1.5px solid var(--border);background:var(--surface-2);white-space:nowrap}
 .dt td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
 .dt tr:last-child td{border-bottom:none}
+.table-wrap.tall{max-height:calc(100vh - 230px)}
+.dt th.sortable{cursor:pointer;user-select:none}
+.dt th.sortable:hover{color:var(--accent)}
+.clickable{cursor:pointer}
+.stat-card.clickable:hover{box-shadow:0 4px 14px rgba(15,23,42,.12)}
+.mini-table tr.clickable:hover td{background:var(--accent-l)}
+.quick-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.qchip{font:500 12px Inter,sans-serif;padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer}
+.qchip:hover{border-color:var(--accent);color:var(--accent)}
+.qchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.qchip .n{opacity:.75;margin-left:4px}
+.empty-state{padding:36px 16px;text-align:center;color:var(--muted)}
+.empty-state b{display:block;font-size:15px;color:var(--text);margin-bottom:4px}
+.empty-state .btn{margin-top:12px}
 .dt tbody tr:hover td{background:#F8FAFD}
 .dt tbody tr td:first-child{border-left:3px solid transparent}
 .dt tbody tr:hover td:first-child{border-left-color:var(--accent)}
@@ -507,7 +521,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.6.0';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -516,12 +530,46 @@ const SESSION={token:null};
 function saveSession(){try{sessionStorage.setItem('pom_sess',JSON.stringify({token:SESSION.token,user:S.user}));}catch{}}
 // ── Background saves: never fail silently ──
 const SAVE={pending:0,failed:[]};
+const SAVEIND={t:null};
+function updateSaveInd(){
+  let e=document.getElementById('saveInd');
+  if(!e){e=document.createElement('div');e.id='saveInd';e.style.cssText='position:fixed;right:14px;bottom:14px;z-index:99990;padding:6px 12px;border-radius:999px;font:500 12px Inter,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:opacity .3s;opacity:0;pointer-events:none';document.body.appendChild(e);}
+  clearTimeout(SAVEIND.t);
+  if(SAVE.pending>0){e.textContent='Saving…';e.style.background='#E0ECFF';e.style.color='#1E3A8A';e.style.opacity='1';}
+  else if(SAVE.failed.length){e.style.opacity='0';}
+  else{e.textContent='Saved ✓';e.style.background='#DCFCE7';e.style.color='#166534';e.style.opacity='1';SAVEIND.t=setTimeout(()=>{e.style.opacity='0';},2500);}
+}
+const EMPTY_FILTERS=()=>({customers:[],shipmentTypes:[],poStatuses:[],partNos:[],orderDateFrom:'',orderDateTo:'',dockDateFrom:'',dockDateTo:'',shipDateFrom:'',shipDateTo:'',dueWindow:'',inTransitOnly:false});
+const EMPTY_SHIP_FILTERS=()=>({customers:[],locations:[],deliveryStatuses:[],partNos:[],poNos:[],kanban:'',shipDateFrom:'',shipDateTo:'',deliveryDateFrom:'',deliveryDateTo:''});
+function goOrders(f){S.filters={...EMPTY_FILTERS(),...(f||{})};S.search='';S.page='orders';render();}
+function goShipments(f){S.shipFilters={...EMPTY_SHIP_FILTERS(),...(f||{})};S.shipSearch='';S.page='shipments';render();}
+function openOrderView(id){const o=S.orders.find(x=>x.id===id);if(!o)return;S.editing=cloneObj(o);S.page='view-order';render();}
+function sortArrow(st,key){return st&&st.key===key?(st.dir>0?' ▲':' ▼'):'';}
+function sortTh(label,key,which,extra){const st=which==='o'?S.orderSort:S.shipSort;return`<th class="sortable" title="Click to sort" onclick="setSort('${which}','${key}')" ${extra||''}>${label}${sortArrow(st,key)}</th>`;}
+function setSort(which,key){const k=which==='o'?'orderSort':'shipSort';const st=S[k]||{};S[k]=st.key===key?(st.dir>0?{key,dir:-1}:{key:'',dir:1}):{key,dir:1};render();}
+const cmpVals=(a,b)=>typeof a==='number'&&typeof b==='number'?a-b:String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:'base'});
+function sortOrders(list){const st=S.orderSort;if(!st||!st.key)return list;
+  const val=o=>st.key==='date'?isoDay(o.orderDate):st.key==='customer'?(o.customerName||''):st.key==='po'?(o.customerPONo||''):st.key==='status'?orderStatus(o):st.key==='open'?o.lines.reduce((t,l)=>t+(+calcLine(l).poOpenQty||0),0):'';
+  return [...list].sort((a,b)=>st.dir*cmpVals(val(a),val(b)));}
+function sortShips(list){const st=S.shipSort;if(!st||!st.key)return list;
+  const val=x=>st.key==='date'?isoDay(x.dateOfShipping):st.key==='invoice'?(x.shippingInvoiceNo||''):st.key==='status'?(x.lines.every(l=>l.deliveryStatus==='Delivered')?'Delivered':'In Transit'):st.key==='qty'?x.lines.reduce((t,l)=>t+(+l.shippedQty||0),0):'';
+  return [...list].sort((a,b)=>st.dir*cmpVals(val(a),val(b)));}
+function orderHasDue(o,w){return o.lines.some(l=>{if(calcLine(l).poStatus!=='Open')return false;const m=maxIso(l.shipDate1||'',l.revisedShipDate||'');if(!m)return false;const d=daysDiff(m);if(d===null)return false;return w==='overdue'?m<today():w==='today'?m===today():w==='7days'?(d>=0&&d<=7):w==='30days'?(d>=0&&d<=30):false;});}
+function setOrderQuick(k){const f=S.filters;f.poStatuses=[];f.dueWindow='';f.inTransitOnly=false;
+  if(k==='open')f.poStatuses=['Open'];else if(k==='closed')f.poStatuses=['Closed'];else if(k==='overdue')f.dueWindow='overdue';else if(k==='transit')f.inTransitOnly=true;render();}
+function quickChipsHTML(){
+  const f=S.filters,os=S.orders;
+  const cnt={all:os.length,open:os.filter(o=>orderStatus(o)==='Open').length,overdue:os.filter(o=>orderHasDue(o,'overdue')).length,transit:os.filter(o=>o.lines.some(l=>(+l.inTransit||0)>0)).length,closed:os.filter(o=>orderStatus(o)==='Closed').length};
+  const ps=f.poStatuses||[];
+  const active=f.inTransitOnly?'transit':f.dueWindow==='overdue'?'overdue':(ps.length===1&&ps[0]==='Open')?'open':(ps.length===1&&ps[0]==='Closed')?'closed':(!ps.length&&!f.dueWindow)?'all':'';
+  const L={all:'All',open:'Open',overdue:'Overdue',transit:'In transit',closed:'Closed'};
+  return`<div class="quick-chips">${Object.keys(L).map(k=>`<button class="qchip${active===k?' on':''}" data-quick="${k}" onclick="setOrderQuick('${k}')">${L[k]}<span class="n">${cnt[k]}</span></button>`).join('')}</div>`;}
 function persist(fn,desc){
-  SAVE.pending++;
+  SAVE.pending++;updateSaveInd();
   return Promise.resolve().then(fn).catch(e=>{
     SAVE.failed.push({fn,desc,msg:String((e&&e.message)||e),rec:e&&e.rec,conflict:!!(e&&e.conflict)});
     console.error('SAVE FAILED:',desc,e);
-  }).finally(()=>{SAVE.pending--;renderSaveBanner();});
+  }).finally(()=>{SAVE.pending--;renderSaveBanner();updateSaveInd();});
 }
 function renderSaveBanner(){
   let b=document.getElementById('saveBanner');
@@ -1028,6 +1076,7 @@ function msMatch(selectedArr, val){return selectedArr.length===0||selectedArr.in
 function msMatchAny(selectedArr, vals){return selectedArr.length===0||vals.some(v=>selectedArr.includes(v));}
 let S={page:'login',user:null,modal:null,nextUserId:5,userEdit:null,sidebarCollapsed:window.innerWidth<700,auditLog:[],nextAuditId:1,orderWizStep:1,shipWizStep:1,
   dashFilters:{customers:[],partNos:[],dateFrom:'',dateTo:'',poStatuses:[],shipTypes:[],locations:[]},
+  orderSort:{key:'',dir:1},shipSort:{key:'',dir:1},
   filters:{customers:[],shipmentTypes:[],poStatuses:[],partNos:[],orderDateFrom:'',orderDateTo:'',dockDateFrom:'',dockDateTo:'',shipDateFrom:'',shipDateTo:'',dueWindow:''},
   shipFilters:{customers:[],locations:[],deliveryStatuses:[],partNos:[],poNos:[],kanban:'',shipDateFrom:'',shipDateTo:'',deliveryDateFrom:'',deliveryDateTo:''},editing:null,editingShipment:null,search:'',shipSearch:'',filterOpen:false,shipFilterOpen:false,showOrderExport:false,showShipExport:false,showShipRelink:false,relinkShipId:null,showOrderRelink:false,relinkOrderId:null,relinkOrderLineIdx:null,customers:[{id:1,name:'Acme Corp',contact:'John Smith',email:'john@acme.com'},{id:2,name:'Zenith Industries',contact:'Rita Patel',email:'rita@zenith.com'},{id:3,name:'Pacific Traders',contact:'Sam Lee',email:'sam@pacific.com'},{id:4,name:'Delta Manufacturing',contact:'Neha Roy',email:'neha@delta.com'},{id:5,name:'Horizon Tech',contact:'Arjun Mehta',email:'arjun@horizon.com'}],nextCustId:6,parts:[{id:1,custId:1,partNo:'AC-001',desc:'Bracket Assembly'},{id:2,custId:1,partNo:'AC-002',desc:'Housing Unit'},{id:3,custId:2,partNo:'ZI-100',desc:'Gear Module'},{id:4,custId:3,partNo:'PT-010',desc:'Valve Body'},{id:5,custId:3,partNo:'PT-020',desc:'Seal Kit'},{id:6,custId:5,partNo:'HT-777',desc:'PCB Assembly'}],nextPartId:7,masterCustEdit:null,masterPartEdit:null,masterFilterCust:null,masterTab:'customers',orders:[{id:1,saved:true,customerName:'Acme Corp',orderDate:'2026-01-10',customerPONo:'PO-2026-001',blanketOrderNo:'BO-100',consignment:false,buyerName:'John Smith',lines:[{lineNo:1,partNo:'AC-001',poQty:100,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-03-28',usSalesOrder:'SO-5001',usQBPO:'QB-3001',additionalNotes:'',usRate:12.5,indiaRate:10,shipDate1:'2026-03-20',revisedShipDate:''}]},{id:2,saved:true,customerName:'Zenith Industries',orderDate:'2026-02-18',customerPONo:'PO-2026-002',blanketOrderNo:'BO-200',consignment:false,buyerName:'Rita Patel',lines:[{lineNo:1,partNo:'ZI-100',poQty:50,delivered:0,inTransit:0,shipmentType:'SAT Warehouse',inTransitDays:5,originalDockDate:'2026-04-10',usSalesOrder:'SO-5002',usQBPO:'QB-3002',additionalNotes:'',usRate:25,indiaRate:20,shipDate1:'',revisedShipDate:''}]},{id:3,saved:true,customerName:'Pacific Traders',orderDate:'2026-02-05',customerPONo:'PO-2026-003',blanketOrderNo:'BO-300',consignment:false,buyerName:'Sam Lee',lines:[{lineNo:1,partNo:'PT-010',poQty:200,delivered:0,inTransit:0,shipmentType:'Dropship',inTransitDays:10,originalDockDate:'2026-04-15',usSalesOrder:'SO-5003',usQBPO:'QB-3003',additionalNotes:'',usRate:8,indiaRate:6.5,shipDate1:'',revisedShipDate:''},{lineNo:2,partNo:'PT-020',poQty:80,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-04-20',usSalesOrder:'SO-5004',usQBPO:'QB-3003',additionalNotes:'',usRate:15,indiaRate:12,shipDate1:'',revisedShipDate:''}]}],nextOrderId:4,shipments:[{id:1,saved:true,shippingInvoiceNo:'SHIP-001',gstInvoiceNo:'GST-001',dateOfInvoice:'2026-03-15',dateOfShipping:'2026-03-16',transportMethod:'Air Freight',logistics:'DHL Express',trackingNo:'DHL123456789',customsHouseAgent:'CHA Global',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-001',partNo:'AC-001',orderLineNo:1,shippedQty:40,shippedTo:'Acme Corp',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-001',heatNo:'HT-A1'}]},{id:2,saved:true,shippingInvoiceNo:'SHIP-002',gstInvoiceNo:'GST-002',dateOfInvoice:'2026-03-20',dateOfShipping:'2026-03-21',transportMethod:'Sea Freight',logistics:'Maersk',trackingNo:'MAER987654',customsHouseAgent:'CHA Global',kanban:false,location:'SAT',lines:[{lineNo:1,customerPONo:'PO-2026-002',partNo:'ZI-100',orderLineNo:1,shippedQty:50,shippedTo:'Zenith Industries',deliveryStatus:'Delivered',deliveryDate:'2026-04-01',usInvoiceNo:'US-INV-002',heatNo:'HT-Z1'}]},{id:3,saved:true,shippingInvoiceNo:'SHIP-003',gstInvoiceNo:'GST-003',dateOfInvoice:'2026-03-25',dateOfShipping:'2026-03-26',transportMethod:'Air Freight',logistics:'FedEx',trackingNo:'FDX445566',customsHouseAgent:'CHA Express',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-003',partNo:'PT-010',orderLineNo:1,shippedQty:100,shippedTo:'Pacific Traders',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-003',heatNo:'HT-P1'}]}],nextShipId:4};
 const isAdmin=()=>S.user?.role==='Admin';const canEdit=()=>['Admin','Staff'].includes(S.user?.role);const canFin=()=>['Admin','Staff','Viewer2'].includes(S.user?.role);const roleLabel=r=>({Admin:'Administrator',Staff:'Staff',Viewer1:'Viewer Type 1',Viewer2:'Viewer Type 2'}[r]||r);const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');const today=()=>new Date().toISOString().split('T')[0];
@@ -1269,7 +1318,7 @@ function applyOrderFilters(orders){const f=S.filters,q=S.search.toLowerCase();co
       return false;
     });
     if(!hasMatch)return false;
-  }if(q&&!(o.customerName||'').toLowerCase().includes(q)&&!(o.customerPONo||'').toLowerCase().includes(q)&&!(o.buyerName||'').toLowerCase().includes(q))return false;if(!msMatch(f.customers||[],o.customerName))return false;if((f.shipmentTypes||[]).length&&!o.lines.some(l=>msMatch(f.shipmentTypes,l.shipmentType)))return false;if((f.poStatuses||[]).length&&!msMatch(f.poStatuses,orderStatus(o)))return false;if((f.partNos||[]).length&&!o.lines.some(l=>msMatch(f.partNos,l.partNo)))return false;if(f.orderDateFrom&&o.orderDate<f.orderDateFrom)return false;if(f.orderDateTo&&o.orderDate>f.orderDateTo)return false;if(f.dockDateFrom&&!o.lines.some(l=>l.originalDockDate>=f.dockDateFrom))return false;if(f.dockDateTo&&!o.lines.some(l=>l.originalDockDate<=f.dockDateTo))return false;if(f.shipDateFrom&&!o.lines.some(l=>(l.shipDate1||l.revisedShipDate)>=f.shipDateFrom))return false;if(f.shipDateTo&&!o.lines.some(l=>(l.shipDate1||l.revisedShipDate)<=f.shipDateTo))return false;return true;});}
+  }if(q&&!(o.customerName||'').toLowerCase().includes(q)&&!(o.customerPONo||'').toLowerCase().includes(q)&&!(o.buyerName||'').toLowerCase().includes(q))return false;if(!msMatch(f.customers||[],o.customerName))return false;if((f.shipmentTypes||[]).length&&!o.lines.some(l=>msMatch(f.shipmentTypes,l.shipmentType)))return false;if((f.poStatuses||[]).length&&!msMatch(f.poStatuses,orderStatus(o)))return false;if(f.inTransitOnly&&!o.lines.some(l=>(+l.inTransit||0)>0))return false;if((f.partNos||[]).length&&!o.lines.some(l=>msMatch(f.partNos,l.partNo)))return false;if(f.orderDateFrom&&o.orderDate<f.orderDateFrom)return false;if(f.orderDateTo&&o.orderDate>f.orderDateTo)return false;if(f.dockDateFrom&&!o.lines.some(l=>l.originalDockDate>=f.dockDateFrom))return false;if(f.dockDateTo&&!o.lines.some(l=>l.originalDockDate<=f.dockDateTo))return false;if(f.shipDateFrom&&!o.lines.some(l=>(l.shipDate1||l.revisedShipDate)>=f.shipDateFrom))return false;if(f.shipDateTo&&!o.lines.some(l=>(l.shipDate1||l.revisedShipDate)<=f.shipDateTo))return false;return true;});}
 function applyShipFilters(shipments){const f=S.shipFilters,q=S.shipSearch.toLowerCase();return shipments.filter(s=>{if(q&&!(s.shippingInvoiceNo||'').toLowerCase().includes(q)&&!(s.trackingNo||'').toLowerCase().includes(q)&&!s.lines.some(l=>(l.shippedTo||'').toLowerCase().includes(q)||(l.partNo||'').toLowerCase().includes(q)||(l.customerPONo||'').toLowerCase().includes(q)))return false;if((f.customers||[]).length&&!s.lines.some(l=>msMatch(f.customers,l.shippedTo)))return false;if((f.deliveryStatuses||[]).length&&!s.lines.some(l=>msMatch(f.deliveryStatuses,l.deliveryStatus)))return false;if(f.kanban!==''){const kb=f.kanban==='yes';if(s.kanban!==kb)return false;}if((f.locations||[]).length&&!msMatch(f.locations,s.location))return false;if((f.partNos||[]).length&&!s.lines.some(l=>msMatch(f.partNos,l.partNo)))return false;if((f.poNos||[]).length&&!s.lines.some(l=>msMatch(f.poNos,l.customerPONo)))return false;if(f.shipDateFrom&&s.dateOfShipping&&s.dateOfShipping<f.shipDateFrom)return false;if(f.shipDateTo&&s.dateOfShipping&&s.dateOfShipping>f.shipDateTo)return false;if(f.deliveryDateFrom&&!s.lines.some(l=>l.deliveryDate&&l.deliveryDate>=f.deliveryDateFrom))return false;if(f.deliveryDateTo&&!s.lines.some(l=>l.deliveryDate&&l.deliveryDate<=f.deliveryDateTo))return false;return true;});}
 function downloadCSV(csv,filename){const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
 function exportOrders(type){const orders=applyOrderFilters(S.orders);let csv='',filename='';if(type==='full'){filename='PO_Full_Report.csv';const hdrs=['Order ID','Customer','PO No','Order Date','Blanket Order No','Consignment','Buyer','Line No','Part No','PO Qty','Delivered','Open Qty','In Transit','PO Open Qty','Shipment Type','In Transit Days','On Dock Date','Must Ship Date','Ship Date 1','Revised Ship Date','On Dock Revised','PO Status','US Sales Order #','US QB PO #','Notes',...(canFin()?['India Rate','US Rate','India Ext','US Ext']:[])];csv=hdrs.join(',')+'\n';orders.forEach(o=>o.lines.forEach(l=>{const c=calcLine(l);csv+=[o.id,o.customerName,o.customerPONo,fmtDate(o.orderDate),o.blanketOrderNo,o.consignment?'Yes':'No',o.buyerName,l.lineNo,l.partNo,l.poQty,l.delivered,c.openQty,l.inTransit,c.poOpenQty,l.shipmentType,l.inTransitDays,fmtDate(l.originalDockDate),fmtDate(c.mustShipDate),fmtDate(l.shipDate1),fmtDate(l.revisedShipDate),fmtDate(c.revisedDockDate),c.poStatus,l.usSalesOrder,l.usQBPO,'"'+(l.additionalNotes||'').replace(/"/g,'""')+'"',...(canFin()?[l.indiaRate,l.usRate,c.indiaExt.toFixed(2),c.usExt.toFixed(2)]:[])].join(',')+'\n';}));}else if(type==='summary'){filename='PO_Summary_Report.csv';csv='Order ID,Customer,PO No,Order Date,Buyer,Consignment,Lines,Total PO Qty,Total Delivered,Open Qty,In Transit,PO Open Qty,Status\n';orders.forEach(o=>{const tPO=o.lines.reduce((s,l)=>s+(+l.poQty||0),0),tDel=o.lines.reduce((s,l)=>s+(+l.delivered||0),0),tInT=o.lines.reduce((s,l)=>s+(+l.inTransit||0),0);csv+=[o.id,o.customerName,o.customerPONo,fmtDate(o.orderDate),o.buyerName,o.consignment?'Yes':'No',o.lines.length,tPO,tDel,tPO-tDel,tInT,(tPO-tDel)-tInT,orderStatus(o)].join(',')+'\n';});}else if(type==='financial'&&canFin()){filename='PO_Financial_Report.csv';csv='Order ID,Customer,PO No,Order Date,Line No,Part No,PO Qty,India Rate,US Rate,India Ext,US Ext\n';orders.forEach(o=>o.lines.forEach(l=>{const c=calcLine(l);csv+=[o.id,o.customerName,o.customerPONo,fmtDate(o.orderDate),l.lineNo,l.partNo,l.poQty,l.indiaRate,l.usRate,c.indiaExt.toFixed(2),c.usExt.toFixed(2)].join(',')+'\n';}));}if(csv)downloadCSV(csv,filename);}
@@ -1565,16 +1614,16 @@ function dashHTML(){
   const alertStrip=overdueLines.length>0?`<div class="alert-strip" style="margin-bottom:16px">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     <span class="alert-strip-text">${overdueLines.length} PO line${overdueLines.length>1?'s':''} overdue &mdash; avg <strong>${avgDaysLate} days</strong> late &middot; ${overdueQty} pcs pending</span>
-    <span class="alert-strip-link" onclick="S.page='orders';S.filters.poStatuses=['Open'];render()">Review Orders &rarr;</span>
+    <span class="alert-strip-link" onclick="goOrders({dueWindow:'overdue'})">Review Orders &rarr;</span>
   </div>`:'';
 
   const financeKPIs=canFin()?`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:12px">
-    <div class="stat-card" style="border-top:3px solid var(--accent)">
+    <div class="stat-card clickable" title="Click to see open orders" onclick="goOrders({poStatuses:['Open']})" style="border-top:3px solid var(--accent)">
       <div class="stat-label">PO Value US</div>
       <div class="stat-value" style="font-size:20px">${fmt(poValueUS)}</div>
       <div class="stat-sub">From orders</div>
     </div>
-    <div class="stat-card" style="border-top:3px solid #1D9E75">
+    <div class="stat-card clickable" title="Click to see open orders" onclick="goOrders({poStatuses:['Open']})" style="border-top:3px solid #1D9E75">
       <div class="stat-label">PO Value (India, in $)</div>
       <div class="stat-value" style="font-size:20px;color:#1D9E75">${fmtI(poValueIN)}</div>
       <div class="stat-sub">From orders</div>
@@ -1589,12 +1638,12 @@ function dashHTML(){
       <div class="stat-value" style="font-size:20px;color:#639922">${fmtI(salesDelIN)}</div>
       <div class="stat-sub">${fmtQ(qtyDel)} pcs</div>
     </div>
-    <div class="stat-card" style="border-top:3px solid var(--warn)">
+    <div class="stat-card clickable" title="Click to see shipments in transit" onclick="goShipments({deliveryStatuses:['In Transit']})" style="border-top:3px solid var(--warn)">
       <div class="stat-label">In Transit US</div>
       <div class="stat-value" style="font-size:20px;color:var(--warn)">${fmt(salesInTUS)}</div>
       <div class="stat-sub">${fmtQ(qtyInT)} pcs</div>
     </div>
-    <div class="stat-card" style="border-top:3px solid #BA7517">
+    <div class="stat-card clickable" title="Click to see shipments in transit" onclick="goShipments({deliveryStatuses:['In Transit']})" style="border-top:3px solid #BA7517">
       <div class="stat-label">In Transit India ($)</div>
       <div class="stat-value" style="font-size:20px;color:#BA7517">${fmtI(salesInTIN)}</div>
       <div class="stat-sub">${fmtQ(qtyInT)} pcs</div>
@@ -1602,7 +1651,7 @@ function dashHTML(){
   </div>`:`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:12px;text-align:center;font-size:13px;color:var(--muted)">Financial KPIs are restricted to Finance roles</div>`;
 
   const opsKPIs=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-    <div class="stat-card" style="border-top:3px solid ${overdueLines.length>0?'var(--danger)':'var(--border)'}">
+    <div class="stat-card clickable" title="Click to see the overdue orders" onclick="goOrders({dueWindow:'overdue'})" style="border-top:3px solid ${overdueLines.length>0?'var(--danger)':'var(--border)'}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between">
         <div>
           <div class="stat-label">Overdue PO Lines</div>
@@ -1676,7 +1725,7 @@ function dashHTML(){
 
   const upcomingTable=`<div class="chart-card">
     <div class="chart-title">Upcoming Must-Ship <span class="chart-subtitle">next 7 days</span>
-      ${upcomingLines.length?`<span class="badge ${upcomingLines.some(x=>x.daysLeft<=3)?'b-red':'b-yellow'}">${upcomingLines.length}</span>`:`<span class="badge b-green">Clear</span>`}
+      ${upcomingLines.length?`<span class="badge clickable ${upcomingLines.some(x=>x.daysLeft<=3)?'b-red':'b-yellow'}" onclick="goOrders({dueWindow:'7days'})">${upcomingLines.length} &rarr;</span>`:`<span class="badge b-green">Clear</span>`}
     </div>
     ${upcomingLines.length===0?`<div style="padding:20px 0;text-align:center">
       <div style="width:36px;height:36px;background:var(--success-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
@@ -1685,7 +1734,7 @@ function dashHTML(){
     </div>`:`
     <table class="mini-table">
       <thead><tr><th>Customer</th><th>PO No</th><th>Part</th><th>Must Ship</th><th style="text-align:center">Left</th><th style="text-align:right">Qty</th></tr></thead>
-      <tbody>${upcomingLines.slice(0,8).map(({order:o,line:l,calc:c,daysLeft})=>`<tr>
+      <tbody>${upcomingLines.slice(0,8).map(({order:o,line:l,calc:c,daysLeft})=>`<tr class="clickable" onclick="openOrderView(${o.id})">
         <td style="font-size:11px;font-weight:500">${esc(o.customerName)}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(o.customerPONo)}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(l.partNo)}</td>
@@ -1698,7 +1747,7 @@ function dashHTML(){
 
   const overdueTable=`<div class="chart-card">
     <div class="chart-title">Overdue PO Lines
-      ${overdueLines.length?`<span class="badge b-red">${overdueLines.length} line${overdueLines.length>1?'s':''}</span>`:`<span class="badge b-green">All on track &#x2713;</span>`}
+      ${overdueLines.length?`<span class="badge b-red clickable" onclick="goOrders({dueWindow:'overdue'})">${overdueLines.length} line${overdueLines.length>1?'s':''} &rarr;</span>`:`<span class="badge b-green">All on track &#x2713;</span>`}
     </div>
     ${overdueLines.length===0?`<div style="padding:20px 0;text-align:center">
       <div style="width:36px;height:36px;background:var(--success-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
@@ -1706,7 +1755,7 @@ function dashHTML(){
     </div>`:`
     <table class="mini-table">
       <thead><tr><th>Customer</th><th>PO No</th><th>Part</th><th>Must Ship</th><th style="text-align:center">Late</th><th style="text-align:right">Qty</th></tr></thead>
-      <tbody>${overdueLines.slice(0,8).map(({order:o,line:l,calc:c,daysOver})=>`<tr>
+      <tbody>${overdueLines.slice(0,8).map(({order:o,line:l,calc:c,daysOver})=>`<tr class="clickable" onclick="openOrderView(${o.id})">
         <td style="font-size:11px;font-weight:500">${esc(o.customerName)}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(o.customerPONo)}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(l.partNo)}</td>
@@ -1715,7 +1764,7 @@ function dashHTML(){
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;text-align:right">${c.poOpenQty}</td>
       </tr>`).join('')}</tbody>
     </table>
-    ${overdueLines.length>8?`<div style="padding:8px 0 0;text-align:center;font-size:11px;color:var(--muted)">${overdueLines.length-8} more &mdash; <span style="color:var(--accent);cursor:pointer" onclick="S.page='orders';S.filters.poStatuses=['Open'];render()">view all &rarr;</span></div>`:''}`}
+    ${overdueLines.length>8?`<div style="padding:8px 0 0;text-align:center;font-size:11px;color:var(--muted)">${overdueLines.length-8} more &mdash; <span style="color:var(--accent);cursor:pointer" onclick="goOrders({dueWindow:'overdue'})">view all &rarr;</span></div>`:''}`}
   </div>`;
 
   const recentShips=`<div class="chart-card">
@@ -1750,7 +1799,7 @@ function ordersHTML(){
   const shipTypeOpts=allShipTypes();
   const partOpts=allOrderPartNos();
   const statusOpts=['Open','Closed','Cancelled'];
-  const filtered=applyOrderFilters(S.orders);
+  const filtered=sortOrders(applyOrderFilters(S.orders));
   const todayStr=today();
 
   // Quick stats
@@ -1778,7 +1827,7 @@ function ordersHTML(){
   const alertStrip=overdueOrders>0?`<div class="alert-strip">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     <span class="alert-strip-text">${overdueOrders} order${overdueOrders>1?'s':''} with overdue must-ship dates require attention</span>
-    <span class="alert-strip-link" onclick="S.filters.poStatuses=['Open'];render()">View Open Orders →</span>
+    <span class="alert-strip-link" onclick="S.filters.dueWindow='overdue';render()">View Overdue Orders →</span>
   </div>`:'';
 
   return`${alertStrip}
@@ -1800,6 +1849,7 @@ function ordersHTML(){
   </div>
 
   ${chips.length?`<div class="active-filters">${chips.map(c=>`<span class="filter-chip">${esc(c.label)}<button onclick="S.filters['${c.key}']=[];render()">×</button></span>`).join('')}</div>`:''}
+  ${quickChipsHTML()}
   <div class="filter-panel${S.filterOpen?' open':''}">
     <div class="fp-title">Advanced Filters — <span style="font-weight:400;color:var(--light)">multi-select supported</span></div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
@@ -1822,7 +1872,7 @@ function ordersHTML(){
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div style="font-size:12px;color:var(--muted)">Showing <strong>${filtered.length}</strong> of <strong>${S.orders.length}</strong> orders</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      ${['overdue','today','7days','30days'].map(w=>{
+      ${['today','7days','30days'].map(w=>{
         const labels={overdue:'⚠ Overdue',today:'Due Today','7days':'Due 7 Days','30days':'Due 30 Days'};
         const colors={overdue:'var(--danger)','today':'var(--warn)','7days':'var(--accent)','30days':'var(--success)'};
         const bgColors={overdue:'var(--danger-l)','today':'var(--warn-l)','7days':'var(--accent-l)','30days':'var(--success-l)'};
@@ -1852,8 +1902,8 @@ function ordersHTML(){
       }).join('')}
     </div>
   </div>
-  <div class="table-wrap"><table class="dt">
-    <thead><tr><th>Order Date</th><th>Customer</th><th>Customer PO No</th><th>Part No</th><th>PO Qty</th><th>Delivered</th><th>In Transit</th><th>PO Open Qty</th><th>Progress</th><th>Status</th><th>Actions</th></tr></thead>
+  <div class="table-wrap tall"><table class="dt">
+    <thead><tr>${sortTh('Order Date','date','o')}${sortTh('Customer','customer','o')}${sortTh('Customer PO No','po','o')}<th>Part No</th><th>PO Qty</th><th>Delivered</th><th>In Transit</th>${sortTh('PO Open Qty','open','o')}<th>Progress</th>${sortTh('Status','status','o')}<th>Actions</th></tr></thead>
     <tbody>${filtered.length?filtered.map(o=>{
       const st=orderStatus(o);
       return o.lines.map((l,li)=>{
@@ -1888,7 +1938,7 @@ function ordersHTML(){
           </div>`:'&nbsp;'}</td>
         </tr>`;
       }).join('');
-    }).join(''):`<tr><td colspan="8" class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>No orders match your filters</td></tr>`}</tbody>
+    }).join(''):`<tr><td colspan="11"><div class="empty-state">${S.orders.length===0?`<b>No orders yet</b>${canEdit()?'Create your first purchase order to get started.<br><button class="btn btn-primary btn-sm" onclick="S.editing={lines:[emptyLine(1)],consignment:false,orderDate:today()};S.orderWizStep=1;S.page=\'new-order\';render()">+ New Order</button>':'Orders will appear here once they are created.'}`:`<b>No orders match your filters</b>Try a different search or clear the filters.<br><button class="btn btn-secondary btn-sm" onclick="S.filters=EMPTY_FILTERS();S.search=\'\';render()">Clear filters</button>`}</div></td></tr>`}</tbody>
   </table></div>`;
 }
 
@@ -2065,7 +2115,7 @@ function shipmentsHTML(){
   const statusOpts=DELIVERY_STATUSES;
   const partOpts=allShipPartNos();
   const poOpts=allShipPONos();
-  const filtered=applyShipFilters(S.shipments);
+  const filtered=sortShips(applyShipFilters(S.shipments));
 
   // Quick stats
   const totalShips=S.shipments.length;
@@ -2134,8 +2184,8 @@ function shipmentsHTML(){
     <div class="fp-actions"><button class="btn btn-purple btn-sm" id="applyShipFilters">Apply</button><button class="btn btn-secondary btn-sm" id="resetShipFilters">Reset All</button></div>
   </div>
   <div style="margin-bottom:10px;font-size:12px;color:var(--muted)">Showing <strong>${filtered.length}</strong> of <strong>${S.shipments.length}</strong> shipments</div>
-  <div class="table-wrap"><table class="dt">
-    <thead><tr><th>Date</th><th>Invoice No</th><th>Customer PO No</th><th>Part No</th><th>Qty</th><th>Logistics</th><th>Tracking No</th><th>Delivery Status</th><th>Delivery Date</th><th>Actions</th></tr></thead>
+  <div class="table-wrap tall"><table class="dt">
+    <thead><tr>${sortTh('Date','date','s')}${sortTh('Invoice No','invoice','s')}<th>Customer PO No</th><th>Part No</th><th>Qty</th><th>Logistics</th><th>Tracking No</th>${sortTh('Delivery Status','status','s')}<th>Delivery Date</th><th>Actions</th></tr></thead>
     <tbody>${filtered.length?filtered.map(s=>{
       const allDel=s.lines.every(l=>l.deliveryStatus==='Delivered');
       return s.lines.map((l,li)=>{
@@ -2159,7 +2209,7 @@ function shipmentsHTML(){
           </div>`:'&nbsp;'}</td>
         </tr>`;
       }).join('');
-    }).join(''):`<tr><td colspan="10" class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>No shipments match your filters</td></tr>`}</tbody>
+    }).join(''):`<tr><td colspan="10"><div class="empty-state">${S.shipments.length===0?`<b>No shipments yet</b>${canEdit()?'Record your first shipment to track what is on the way.<br><button class="btn btn-primary btn-sm" onclick="S.editingShipment={lines:[emptyShipLine(1)],kanban:false,location:\'India\',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page=\'new-shipment\';render()">+ New Shipment</button>':'Shipments will appear here once they are created.'}`:`<b>No shipments match your filters</b>Try a different search or clear the filters.<br><button class="btn btn-secondary btn-sm" onclick="S.shipFilters=EMPTY_SHIP_FILTERS();S.shipSearch=\'\';render()">Clear filters</button>`}</div></td></tr>`}</tbody>
   </table></div>`;
 }
 
