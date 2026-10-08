@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mentco — PO Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
    MENTCO PO MANAGER v9 — DESIGN SYSTEM
@@ -17,7 +17,7 @@
   --text:#0F172A;--muted:#64748B;--light:#94A3B8;
 
   /* Accent — Mentco steel blue */
-  --accent:#1E6FC2;--accent-d:#155EA0;--accent-l:#EBF3FC;--accent-mid:#BFDBFE;
+  --accent:#1F4E8C;--accent-d:#155EA0;--accent-l:#EBF3FC;--accent-mid:#BFDBFE;
 
   /* Sidebar — dark navy */
   --sb-bg:#0B1829;--sb-border:#1E2D3D;--sb-text:#94A3B8;--sb-text-active:#E2E8F0;
@@ -497,6 +497,90 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .review-field-val{font-size:13px;color:var(--text);font-weight:500}
 .review-line-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:14px;margin-bottom:10px}
 .review-line-title{font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+
+/* ═══════════════════════════════════════
+   REFINED THEME (v1.7) — restrained palette, serif titles, hairlines, quiet cards.
+   Delete this whole block to return to the previous look.
+   ═══════════════════════════════════════ */
+:root{
+  --bg:#F6F7F9;--surface:#FFFFFF;--surface-2:#FAFBFC;
+  --border:#E3E6EB;--border-soft:#EEF0F3;
+  --text:#14213D;--muted:#667085;--light:#98A2B3;
+  --accent:#1F4E8C;--accent-d:#173B6C;--accent-l:#EDF2F9;--accent-mid:#C7D6EC;
+  --sb-bg:#0F1C30;--sb-border:#1B2A42;--sb-text:#9AA8BD;--sb-text-active:#F1F4F9;
+  --sb-hover:#15243B;--sb-active-bg:rgba(255,255,255,.07);--sb-active-accent:#8FB8EE;--sb-section:#5C6B82;
+  --danger:#B4423A;--danger-l:#FBEFEE;--danger-mid:#F1CFCB;
+  --success:#2F7D5B;--success-l:#EEF6F1;--success-mid:#C9E3D5;
+  --warn:#A9741B;--warn-l:#FBF5E8;--warn-mid:#EBD9AE;
+  --purple:#5B4B9E;--purple-l:#F3F1FA;--purple-mid:#D9D3EE;
+  --info:#2F6FB5;--info-l:#EEF4FB;
+  --r:12px;--rs:8px;--r-sm:6px;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.04);
+  --shadow:0 4px 14px rgba(16,24,40,.06);
+  --shadow-lg:0 16px 40px rgba(16,24,40,.14);
+}
+body{font-size:14px;letter-spacing:-.003em;font-feature-settings:'tnum' 1,'cv11' 1}
+.serif,.topbar-title,.login-title,.login-left-tagline,.chart-title,.master-card-title,.fp-title,.wiz-summary-title{font-family:'Source Serif 4',Georgia,'Times New Roman',serif}
+.topbar-title{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.topbar{height:60px;box-shadow:none;border-bottom:1px solid var(--border)}
+.chart-title{font-size:16px;font-weight:600;letter-spacing:-.005em}
+.login-title{font-size:30px;font-weight:600;letter-spacing:-.015em}
+.login-left-tagline{font-size:32px;font-weight:500;letter-spacing:-.01em;line-height:1.25;color:#F1F4F9}
+.login-left-sub{color:#8795AB}
+.login-left-globe{background:rgba(143,184,238,.10);border:1px solid rgba(143,184,238,.25);border-radius:18px}
+/* numbers: one typeface, aligned digits (no code-style monospace) */
+[style*="JetBrains Mono"],.mono{font-family:Inter,sans-serif !important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1,'zero' 1}
+/* sidebar */
+.sb-logo{min-height:64px;padding:18px 18px}
+.sb-logo-text{font-family:'Source Serif 4',Georgia,serif;font-size:17px;font-weight:600;letter-spacing:.005em}
+.nav-item{padding:10px 12px;border-radius:8px;font-weight:500}
+.nav-item.active{color:#fff}
+.nav-item.active::before{background:var(--sb-active-accent);width:2px;top:20%;bottom:20%}
+.nav-badge{background:rgba(143,184,238,.22);color:#CFE0F7;font-weight:600}
+.nav-badge.warn{background:rgba(217,160,60,.28);color:#F2D9A6}
+/* buttons */
+.btn{border-radius:var(--rs);font-weight:500;letter-spacing:0;box-shadow:none}
+.btn-primary{background:var(--accent);border-color:var(--accent);box-shadow:none}
+.btn-primary:hover{background:var(--accent-d);box-shadow:0 2px 8px rgba(31,78,140,.25)}
+.btn-secondary{box-shadow:none;border-color:var(--border);color:var(--text)}
+.btn-secondary:hover{background:var(--surface-2);border-color:#C9CFD9}
+.btn-success{background:var(--success);box-shadow:none}.btn-success:hover{background:#256449}
+.btn-danger{background:var(--danger);box-shadow:none}.btn-danger:hover{background:#963530}
+.btn-purple{background:var(--purple);box-shadow:none}
+/* cards: hairline border, no coloured top bars, calm numbers */
+.stat-card,.chart-card,.master-card,.wiz-summary,.table-wrap,.wiz-steps{border-radius:var(--r);box-shadow:var(--shadow-sm);border-color:var(--border)}
+.stat-card{border-top:1px solid var(--border) !important;padding:20px 22px}
+.stat-label{font-size:11px;font-weight:600;letter-spacing:.07em;color:var(--muted)}
+.stat-value{font-family:'Source Serif 4',Georgia,serif !important;font-size:28px !important;font-weight:600;letter-spacing:-.01em;color:var(--text) !important}
+.stat-value[style*="var(--danger)"]{color:var(--danger) !important}
+.stat-sub{color:var(--light)}
+.stat-card.clickable:hover{box-shadow:var(--shadow);border-color:var(--accent-mid)}
+/* tables */
+.dt th{font-size:11px;font-weight:600;letter-spacing:.07em;color:var(--muted);background:var(--surface-2);padding:12px 14px}
+.dt td{padding:13px 14px;font-size:13px}
+.dt tbody tr:hover td{background:#FAFBFD}
+.mini-table th{font-size:10.5px;letter-spacing:.07em}
+/* badges: soft, low-saturation */
+.badge{font-weight:600;font-size:11px;padding:3px 10px;letter-spacing:.005em}
+.b-blue{background:#EAF1FA;color:#1F4E8C}.b-green{background:#E9F4EE;color:#2F7D5B}.b-red{background:#F9EAE8;color:#A23B33}
+.b-yellow{background:#FAF1DC;color:#8F6414}.b-purple{background:#EFEDF8;color:#5B4B9E}.b-gray{background:#EEF0F3;color:#5B6678}
+/* filters, chips, inputs */
+.qchip{border-radius:999px;font-weight:500;padding:6px 14px}
+.qchip.on{background:var(--text);border-color:var(--text)}
+.fg input,.fg select,.fg textarea,.fg-f select,.fg-f input,.search-box{border-width:1px;border-radius:var(--rs)}
+.search-box{box-shadow:none}
+.filter-chip{border-radius:999px}
+.action-btns{flex-wrap:nowrap}
+.dt td{white-space:nowrap}
+.dt td[style*="min-width"]{white-space:normal}
+.dt th{white-space:nowrap}
+.dt td,.dt th{padding-left:12px;padding-right:12px}
+.wiz-summary-val,.audit-ts{font-family:Inter,sans-serif !important;font-size:12px !important;font-variant-numeric:tabular-nums}
+/* panels that were bright blue */
+[style*="var(--info-l)"][style*="var(--accent-mid)"]{background:var(--surface) !important;border-color:var(--border) !important;color:var(--muted)}
+[style*="var(--info-l)"][style*="var(--accent-mid)"] b{color:var(--text)}
+.alert-strip{background:var(--warn-l);border-bottom:1px solid var(--warn-mid)}
+.modal,.export-modal-box{border-radius:14px;box-shadow:var(--shadow-lg)}
 </style>
 </head>
 <body>
@@ -521,7 +605,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.7.0';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -988,7 +1072,7 @@ async function spSaveAuditEntry(entry){
 function showLoadingScreen(msg){
   document.getElementById('root').innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#F8FAFC;gap:20px">
-      <div style="width:48px;height:48px;border:3px solid #E2E8F0;border-top-color:#1E6FC2;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+      <div style="width:48px;height:48px;border:3px solid #E2E8F0;border-top-color:#1F4E8C;border-radius:50%;animation:spin 0.8s linear infinite"></div>
       <div style="font-family:'Inter',sans-serif;font-size:14px;color:#64748B;font-weight:500">${msg||'Loading PO Manager…'}</div>
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>`;
@@ -1004,7 +1088,7 @@ function showErrorScreen(msg){
         <div style="font-size:16px;font-weight:600;color:#1E293B;margin-bottom:8px">Connection Error</div>
         <div style="font-size:13px;color:#64748B;max-width:480px;line-height:1.6">${msg}</div>
       </div>
-      <button onclick="location.reload()" style="padding:8px 20px;background:#1E6FC2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Retry</button>
+      <button onclick="location.reload()" style="padding:8px 20px;background:#1F4E8C;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Retry</button>
     </div>`;
 }
 
@@ -1571,7 +1655,7 @@ function dashHTML(){
           <rect x="${x}" y="${h-hA}" width="${bw}" height="${hA}" rx="2" fill="${colorA}" opacity="${opA}"><title>${lbl}: ${fmtFnA(v[keyA]||0)}</title></rect>
           <rect x="${x+bw+2}" y="${h-hB}" width="${bw}" height="${hB}" rx="2" fill="${colorB}" opacity="${opB}"><title>${lbl}: ${fmtFnB(v[keyB]||0)}</title></rect>
           <text x="${x+bw+1}" y="${h+14}" text-anchor="middle" font-size="8" fill="#64748B" font-family="Inter,sans-serif">${lbl}</text>
-          ${isCur?`<rect x="${x-1}" y="${h-Math.max(hA,hB)-4}" width="${bw*2+4}" height="${Math.max(hA,hB)+8}" rx="3" fill="none" stroke="#1E6FC2" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>`:``}
+          ${isCur?`<rect x="${x-1}" y="${h-Math.max(hA,hB)-4}" width="${bw*2+4}" height="${Math.max(hA,hB)+8}" rx="3" fill="none" stroke="#1F4E8C" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>`:``}
         </g>`;
       }).join('')}
     </svg>`;
@@ -1623,9 +1707,9 @@ function dashHTML(){
       <div class="stat-value" style="font-size:20px">${fmt(poValueUS)}</div>
       <div class="stat-sub">From orders</div>
     </div>
-    <div class="stat-card clickable" title="Click to see open orders" onclick="goOrders({poStatuses:['Open']})" style="border-top:3px solid #1D9E75">
+    <div class="stat-card clickable" title="Click to see open orders" onclick="goOrders({poStatuses:['Open']})" style="border-top:3px solid #3E8E8A">
       <div class="stat-label">PO Value (India, in $)</div>
-      <div class="stat-value" style="font-size:20px;color:#1D9E75">${fmtI(poValueIN)}</div>
+      <div class="stat-value" style="font-size:20px;color:#3E8E8A">${fmtI(poValueIN)}</div>
       <div class="stat-sub">From orders</div>
     </div>
     <div class="stat-card" style="border-top:3px solid var(--success)">
@@ -1633,9 +1717,9 @@ function dashHTML(){
       <div class="stat-value" style="font-size:20px;color:var(--success)">${fmt(salesDelUS)}</div>
       <div class="stat-sub">${fmtQ(qtyDel)} pcs</div>
     </div>
-    <div class="stat-card" style="border-top:3px solid #639922">
+    <div class="stat-card" style="border-top:3px solid #6B8F5E">
       <div class="stat-label">Sales Delivered India ($)</div>
-      <div class="stat-value" style="font-size:20px;color:#639922">${fmtI(salesDelIN)}</div>
+      <div class="stat-value" style="font-size:20px;color:#6B8F5E">${fmtI(salesDelIN)}</div>
       <div class="stat-sub">${fmtQ(qtyDel)} pcs</div>
     </div>
     <div class="stat-card clickable" title="Click to see shipments in transit" onclick="goShipments({deliveryStatuses:['In Transit']})" style="border-top:3px solid var(--warn)">
@@ -1643,9 +1727,9 @@ function dashHTML(){
       <div class="stat-value" style="font-size:20px;color:var(--warn)">${fmt(salesInTUS)}</div>
       <div class="stat-sub">${fmtQ(qtyInT)} pcs</div>
     </div>
-    <div class="stat-card clickable" title="Click to see shipments in transit" onclick="goShipments({deliveryStatuses:['In Transit']})" style="border-top:3px solid #BA7517">
+    <div class="stat-card clickable" title="Click to see shipments in transit" onclick="goShipments({deliveryStatuses:['In Transit']})" style="border-top:3px solid #A9741B">
       <div class="stat-label">In Transit India ($)</div>
-      <div class="stat-value" style="font-size:20px;color:#BA7517">${fmtI(salesInTIN)}</div>
+      <div class="stat-value" style="font-size:20px;color:#A9741B">${fmtI(salesInTIN)}</div>
       <div class="stat-sub">${fmtQ(qtyInT)} pcs</div>
     </div>
   </div>`:`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:12px;text-align:center;font-size:13px;color:var(--muted)">Financial KPIs are restricted to Finance roles</div>`;
@@ -1683,19 +1767,19 @@ function dashHTML(){
 
   const orderChart=canFin()?`<div class="chart-card" style="margin-bottom:14px">
     <div class="chart-title">Monthly Order Activity <span class="chart-subtitle">12 months &middot; US &amp; India PO value &middot; dashed = current month</span></div>
-    <div style="padding:8px 0 4px">${svgBars(moArr,'poUS','poIN','#1E6FC2','#1D9E75',fmt,fmtI)}</div>
+    <div style="padding:8px 0 4px">${svgBars(moArr,'poUS','poIN','#1F4E8C','#3E8E8A',fmt,fmtI)}</div>
     <div style="display:flex;gap:16px;font-size:10px;color:var(--muted);margin-top:4px">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1E6FC2;border-radius:2px;display:inline-block"></span>US PO Value ($)</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1D9E75;border-radius:2px;display:inline-block"></span>India PO Value ($)</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1F4E8C;border-radius:2px;display:inline-block"></span>US PO Value ($)</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#3E8E8A;border-radius:2px;display:inline-block"></span>India PO Value ($)</span>
     </div>
   </div>`:`<div class="chart-card" style="margin-bottom:14px;text-align:center;padding:28px"><p style="color:var(--muted);font-size:13px">Monthly Order Activity &mdash; Financial access required</p></div>`;
 
   const shipChart=canFin()?`<div class="chart-card" style="margin-bottom:14px">
     <div class="chart-title">Monthly Shipment Activity <span class="chart-subtitle">12 months &middot; US &amp; India sales value &middot; dashed = current month</span></div>
-    <div style="padding:8px 0 4px">${svgBars(moArr,'shipUS','shipIN','#639922','#534AB7',fmt,fmtI)}</div>
+    <div style="padding:8px 0 4px">${svgBars(moArr,'shipUS','shipIN','#6B8F5E','#6A5FA8',fmt,fmtI)}</div>
     <div style="display:flex;gap:16px;font-size:10px;color:var(--muted);margin-top:4px">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#639922;border-radius:2px;display:inline-block"></span>US Sales ($)</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#534AB7;border-radius:2px;display:inline-block"></span>India Sales ($)</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#6B8F5E;border-radius:2px;display:inline-block"></span>US Sales ($)</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#6A5FA8;border-radius:2px;display:inline-block"></span>India Sales ($)</span>
     </div>
   </div>`:`<div class="chart-card" style="margin-bottom:14px;text-align:center;padding:28px"><p style="color:var(--muted);font-size:13px">Monthly Shipment Activity &mdash; Financial access required</p></div>`;
 
@@ -2360,7 +2444,7 @@ function orderFormHTML(){
     ${canFin()?`<div class="wiz-summary-divider"></div>
     <div class="wiz-summary-section">Financials</div>
     <div class="wiz-summary-row"><span class="wiz-summary-label">US Value</span><span class="wiz-summary-val" style="color:var(--accent)">${fmt(totalUSVal)}</span></div>
-    <div class="wiz-summary-row"><span class="wiz-summary-label">India Value ($)</span><span class="wiz-summary-val" style="color:#1D9E75">${fmt(totalINVal)}</span></div>`:''}
+    <div class="wiz-summary-row"><span class="wiz-summary-label">India Value ($)</span><span class="wiz-summary-val" style="color:#3E8E8A">${fmt(totalINVal)}</span></div>`:''}
   </div>`:'';
 
   // ── STEP INDICATOR ──
@@ -2446,7 +2530,7 @@ function orderFormHTML(){
               <div class="review-field-row"><div class="review-field-label">Revised Ship Date</div><div class="review-field-val">${fmtDate(l.revisedShipDate)||'—'}</div></div>
               ${canFin()?`<div class="review-field-row"><div class="review-field-label">India Rate</div><div class="review-field-val">$${l.indiaRate||0}</div></div>`:''}
               ${canFin()?`<div class="review-field-row"><div class="review-field-label">US Rate</div><div class="review-field-val">$${l.usRate||0}</div></div>`:''}
-              ${canFin()?`<div class="review-field-row"><div class="review-field-label">India Ext</div><div class="review-field-val" style="color:#1D9E75">${fmtI(c.indiaExt)}</div></div>`:''}
+              ${canFin()?`<div class="review-field-row"><div class="review-field-label">India Ext</div><div class="review-field-val" style="color:#3E8E8A">${fmtI(c.indiaExt)}</div></div>`:''}
               ${canFin()?`<div class="review-field-row"><div class="review-field-label">US Ext</div><div class="review-field-val" style="color:var(--accent)">${fmt(c.usExt)}</div></div>`:''}
               ${+l.shortCloseQty>0?`<div class="review-field-row"><div class="review-field-label">Short Close Qty</div><div class="review-field-val" style="color:var(--warn)">${l.shortCloseQty}</div></div>`:''}
             </div>
