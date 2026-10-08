@@ -134,6 +134,20 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 /* ── MAIN CONTENT ── */
 .main{margin-left:232px;flex:1;display:flex;flex-direction:column;height:100vh;overflow-y:auto;transition:margin-left .2s ease}
 .main.expanded{margin-left:56px;height:100vh;overflow-y:auto}
+/* Phone / narrow screens: menu starts collapsed, grids stack, wide tables scroll sideways */
+@media(max-width:700px){
+  [style*="grid-template-columns"]{grid-template-columns:1fr 1fr !important}
+  .toolbar,.toolbar-left{flex-wrap:wrap}
+  .search-box{min-width:0;flex:1 1 100%}
+  .table-wrap,.tbl-wrap,.card-body{overflow-x:auto}
+  .modal,.modal-box{max-width:96vw !important}
+  .wiz-shell{grid-template-columns:1fr !important}
+  .wiz-summary{position:static !important}
+  .wiz-step-label{display:none}
+  .grid3,.stats-grid,.fp-grid-4,.fp-grid-3,.fp-grid-2,.dash-grid-2{grid-template-columns:1fr 1fr !important}
+  .audit-entry{grid-template-columns:1fr !important}
+}
+@media(max-width:480px){[style*="grid-template-columns"],.grid3,.stats-grid,.fp-grid-4,.fp-grid-3,.fp-grid-2,.dash-grid-2{grid-template-columns:1fr !important}}
 
 /* ── TOPBAR ── */
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
@@ -493,7 +507,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.3.1';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 12;
 
 let SP_ENABLED=true;
@@ -984,7 +998,7 @@ document.addEventListener('click',ev=>{if(!ev.target.closest('.ms-wrap'))documen
 // Filter helpers — empty array = show all
 function msMatch(selectedArr, val){return selectedArr.length===0||selectedArr.includes(val);}
 function msMatchAny(selectedArr, vals){return selectedArr.length===0||vals.some(v=>selectedArr.includes(v));}
-let S={page:'login',user:null,modal:null,nextUserId:5,userEdit:null,sidebarCollapsed:false,auditLog:[],nextAuditId:1,orderWizStep:1,shipWizStep:1,
+let S={page:'login',user:null,modal:null,nextUserId:5,userEdit:null,sidebarCollapsed:window.innerWidth<700,auditLog:[],nextAuditId:1,orderWizStep:1,shipWizStep:1,
   dashFilters:{customers:[],partNos:[],dateFrom:'',dateTo:'',poStatuses:[],shipTypes:[],locations:[]},
   filters:{customers:[],shipmentTypes:[],poStatuses:[],partNos:[],orderDateFrom:'',orderDateTo:'',dockDateFrom:'',dockDateTo:'',shipDateFrom:'',shipDateTo:'',dueWindow:''},
   shipFilters:{customers:[],locations:[],deliveryStatuses:[],partNos:[],poNos:[],kanban:'',shipDateFrom:'',shipDateTo:'',deliveryDateFrom:'',deliveryDateTo:''},editing:null,editingShipment:null,search:'',shipSearch:'',filterOpen:false,shipFilterOpen:false,showOrderExport:false,showShipExport:false,showShipRelink:false,relinkShipId:null,showOrderRelink:false,relinkOrderId:null,relinkOrderLineIdx:null,customers:[{id:1,name:'Acme Corp',contact:'John Smith',email:'john@acme.com'},{id:2,name:'Zenith Industries',contact:'Rita Patel',email:'rita@zenith.com'},{id:3,name:'Pacific Traders',contact:'Sam Lee',email:'sam@pacific.com'},{id:4,name:'Delta Manufacturing',contact:'Neha Roy',email:'neha@delta.com'},{id:5,name:'Horizon Tech',contact:'Arjun Mehta',email:'arjun@horizon.com'}],nextCustId:6,parts:[{id:1,custId:1,partNo:'AC-001',desc:'Bracket Assembly'},{id:2,custId:1,partNo:'AC-002',desc:'Housing Unit'},{id:3,custId:2,partNo:'ZI-100',desc:'Gear Module'},{id:4,custId:3,partNo:'PT-010',desc:'Valve Body'},{id:5,custId:3,partNo:'PT-020',desc:'Seal Kit'},{id:6,custId:5,partNo:'HT-777',desc:'PCB Assembly'}],nextPartId:7,masterCustEdit:null,masterPartEdit:null,masterFilterCust:null,masterTab:'customers',orders:[{id:1,saved:true,customerName:'Acme Corp',orderDate:'2026-01-10',customerPONo:'PO-2026-001',blanketOrderNo:'BO-100',consignment:false,buyerName:'John Smith',lines:[{lineNo:1,partNo:'AC-001',poQty:100,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-03-28',usSalesOrder:'SO-5001',usQBPO:'QB-3001',additionalNotes:'',usRate:12.5,indiaRate:10,shipDate1:'2026-03-20',revisedShipDate:''}]},{id:2,saved:true,customerName:'Zenith Industries',orderDate:'2026-02-18',customerPONo:'PO-2026-002',blanketOrderNo:'BO-200',consignment:false,buyerName:'Rita Patel',lines:[{lineNo:1,partNo:'ZI-100',poQty:50,delivered:0,inTransit:0,shipmentType:'SAT Warehouse',inTransitDays:5,originalDockDate:'2026-04-10',usSalesOrder:'SO-5002',usQBPO:'QB-3002',additionalNotes:'',usRate:25,indiaRate:20,shipDate1:'',revisedShipDate:''}]},{id:3,saved:true,customerName:'Pacific Traders',orderDate:'2026-02-05',customerPONo:'PO-2026-003',blanketOrderNo:'BO-300',consignment:false,buyerName:'Sam Lee',lines:[{lineNo:1,partNo:'PT-010',poQty:200,delivered:0,inTransit:0,shipmentType:'Dropship',inTransitDays:10,originalDockDate:'2026-04-15',usSalesOrder:'SO-5003',usQBPO:'QB-3003',additionalNotes:'',usRate:8,indiaRate:6.5,shipDate1:'',revisedShipDate:''},{lineNo:2,partNo:'PT-020',poQty:80,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-04-20',usSalesOrder:'SO-5004',usQBPO:'QB-3003',additionalNotes:'',usRate:15,indiaRate:12,shipDate1:'',revisedShipDate:''}]}],nextOrderId:4,shipments:[{id:1,saved:true,shippingInvoiceNo:'SHIP-001',gstInvoiceNo:'GST-001',dateOfInvoice:'2026-03-15',dateOfShipping:'2026-03-16',transportMethod:'Air Freight',logistics:'DHL Express',trackingNo:'DHL123456789',customsHouseAgent:'CHA Global',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-001',partNo:'AC-001',orderLineNo:1,shippedQty:40,shippedTo:'Acme Corp',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-001',heatNo:'HT-A1'}]},{id:2,saved:true,shippingInvoiceNo:'SHIP-002',gstInvoiceNo:'GST-002',dateOfInvoice:'2026-03-20',dateOfShipping:'2026-03-21',transportMethod:'Sea Freight',logistics:'Maersk',trackingNo:'MAER987654',customsHouseAgent:'CHA Global',kanban:false,location:'SAT',lines:[{lineNo:1,customerPONo:'PO-2026-002',partNo:'ZI-100',orderLineNo:1,shippedQty:50,shippedTo:'Zenith Industries',deliveryStatus:'Delivered',deliveryDate:'2026-04-01',usInvoiceNo:'US-INV-002',heatNo:'HT-Z1'}]},{id:3,saved:true,shippingInvoiceNo:'SHIP-003',gstInvoiceNo:'GST-003',dateOfInvoice:'2026-03-25',dateOfShipping:'2026-03-26',transportMethod:'Air Freight',logistics:'FedEx',trackingNo:'FDX445566',customsHouseAgent:'CHA Express',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-003',partNo:'PT-010',orderLineNo:1,shippedQty:100,shippedTo:'Pacific Traders',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-003',heatNo:'HT-P1'}]}],nextShipId:4};
