@@ -507,7 +507,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.5.0';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -544,6 +544,7 @@ function notice(msg,kind){
   n.style.cssText=`position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:99998;background:${bg};padding:9px 14px;border-radius:8px;font:500 12px Inter,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.2);max-width:90%;display:flex;gap:10px;align-items:center`;
   n.innerHTML=`<span>${esc(msg)}</span><button style="border:none;background:transparent;cursor:pointer;font-size:14px;color:inherit">✕</button>`;
   n.querySelector('button').onclick=()=>n.remove();document.body.appendChild(n);
+  setTimeout(()=>{if(n.isConnected){n.style.transition='opacity .4s';n.style.opacity='0';setTimeout(()=>n.remove(),450);}},kind==='warn'?15000:7000);
 }
 function clearSession(){try{sessionStorage.removeItem('pom_sess');}catch{}}
 function loadSavedSession(){try{const r=JSON.parse(sessionStorage.getItem('pom_sess')||'null');return r&&r.token&&r.user?r:null;}catch{return null;}}
@@ -1030,7 +1031,7 @@ let S={page:'login',user:null,modal:null,nextUserId:5,userEdit:null,sidebarColla
   filters:{customers:[],shipmentTypes:[],poStatuses:[],partNos:[],orderDateFrom:'',orderDateTo:'',dockDateFrom:'',dockDateTo:'',shipDateFrom:'',shipDateTo:'',dueWindow:''},
   shipFilters:{customers:[],locations:[],deliveryStatuses:[],partNos:[],poNos:[],kanban:'',shipDateFrom:'',shipDateTo:'',deliveryDateFrom:'',deliveryDateTo:''},editing:null,editingShipment:null,search:'',shipSearch:'',filterOpen:false,shipFilterOpen:false,showOrderExport:false,showShipExport:false,showShipRelink:false,relinkShipId:null,showOrderRelink:false,relinkOrderId:null,relinkOrderLineIdx:null,customers:[{id:1,name:'Acme Corp',contact:'John Smith',email:'john@acme.com'},{id:2,name:'Zenith Industries',contact:'Rita Patel',email:'rita@zenith.com'},{id:3,name:'Pacific Traders',contact:'Sam Lee',email:'sam@pacific.com'},{id:4,name:'Delta Manufacturing',contact:'Neha Roy',email:'neha@delta.com'},{id:5,name:'Horizon Tech',contact:'Arjun Mehta',email:'arjun@horizon.com'}],nextCustId:6,parts:[{id:1,custId:1,partNo:'AC-001',desc:'Bracket Assembly'},{id:2,custId:1,partNo:'AC-002',desc:'Housing Unit'},{id:3,custId:2,partNo:'ZI-100',desc:'Gear Module'},{id:4,custId:3,partNo:'PT-010',desc:'Valve Body'},{id:5,custId:3,partNo:'PT-020',desc:'Seal Kit'},{id:6,custId:5,partNo:'HT-777',desc:'PCB Assembly'}],nextPartId:7,masterCustEdit:null,masterPartEdit:null,masterFilterCust:null,masterTab:'customers',orders:[{id:1,saved:true,customerName:'Acme Corp',orderDate:'2026-01-10',customerPONo:'PO-2026-001',blanketOrderNo:'BO-100',consignment:false,buyerName:'John Smith',lines:[{lineNo:1,partNo:'AC-001',poQty:100,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-03-28',usSalesOrder:'SO-5001',usQBPO:'QB-3001',additionalNotes:'',usRate:12.5,indiaRate:10,shipDate1:'2026-03-20',revisedShipDate:''}]},{id:2,saved:true,customerName:'Zenith Industries',orderDate:'2026-02-18',customerPONo:'PO-2026-002',blanketOrderNo:'BO-200',consignment:false,buyerName:'Rita Patel',lines:[{lineNo:1,partNo:'ZI-100',poQty:50,delivered:0,inTransit:0,shipmentType:'SAT Warehouse',inTransitDays:5,originalDockDate:'2026-04-10',usSalesOrder:'SO-5002',usQBPO:'QB-3002',additionalNotes:'',usRate:25,indiaRate:20,shipDate1:'',revisedShipDate:''}]},{id:3,saved:true,customerName:'Pacific Traders',orderDate:'2026-02-05',customerPONo:'PO-2026-003',blanketOrderNo:'BO-300',consignment:false,buyerName:'Sam Lee',lines:[{lineNo:1,partNo:'PT-010',poQty:200,delivered:0,inTransit:0,shipmentType:'Dropship',inTransitDays:10,originalDockDate:'2026-04-15',usSalesOrder:'SO-5003',usQBPO:'QB-3003',additionalNotes:'',usRate:8,indiaRate:6.5,shipDate1:'',revisedShipDate:''},{lineNo:2,partNo:'PT-020',poQty:80,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-04-20',usSalesOrder:'SO-5004',usQBPO:'QB-3003',additionalNotes:'',usRate:15,indiaRate:12,shipDate1:'',revisedShipDate:''}]}],nextOrderId:4,shipments:[{id:1,saved:true,shippingInvoiceNo:'SHIP-001',gstInvoiceNo:'GST-001',dateOfInvoice:'2026-03-15',dateOfShipping:'2026-03-16',transportMethod:'Air Freight',logistics:'DHL Express',trackingNo:'DHL123456789',customsHouseAgent:'CHA Global',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-001',partNo:'AC-001',orderLineNo:1,shippedQty:40,shippedTo:'Acme Corp',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-001',heatNo:'HT-A1'}]},{id:2,saved:true,shippingInvoiceNo:'SHIP-002',gstInvoiceNo:'GST-002',dateOfInvoice:'2026-03-20',dateOfShipping:'2026-03-21',transportMethod:'Sea Freight',logistics:'Maersk',trackingNo:'MAER987654',customsHouseAgent:'CHA Global',kanban:false,location:'SAT',lines:[{lineNo:1,customerPONo:'PO-2026-002',partNo:'ZI-100',orderLineNo:1,shippedQty:50,shippedTo:'Zenith Industries',deliveryStatus:'Delivered',deliveryDate:'2026-04-01',usInvoiceNo:'US-INV-002',heatNo:'HT-Z1'}]},{id:3,saved:true,shippingInvoiceNo:'SHIP-003',gstInvoiceNo:'GST-003',dateOfInvoice:'2026-03-25',dateOfShipping:'2026-03-26',transportMethod:'Air Freight',logistics:'FedEx',trackingNo:'FDX445566',customsHouseAgent:'CHA Express',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-003',partNo:'PT-010',orderLineNo:1,shippedQty:100,shippedTo:'Pacific Traders',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-003',heatNo:'HT-P1'}]}],nextShipId:4};
 const isAdmin=()=>S.user?.role==='Admin';const canEdit=()=>['Admin','Staff'].includes(S.user?.role);const canFin=()=>['Admin','Staff','Viewer2'].includes(S.user?.role);const roleLabel=r=>({Admin:'Administrator',Staff:'Staff',Viewer1:'Viewer Type 1',Viewer2:'Viewer Type 2'}[r]||r);const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');const today=()=>new Date().toISOString().split('T')[0];
-function fmtDate(iso){if(!iso)return'';const d=new Date(iso+'T00:00:00');if(isNaN(d))return'';return`${String(d.getDate()).padStart(2,'0')}-${MONTHS[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;}
+function fmtDate(iso){if(!iso)return'';const d=new Date(iso+'T00:00:00');if(isNaN(d))return'';return`${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
 function addDays(iso,n){if(!iso||isNaN(+n))return'';const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+(+n));return d.toISOString().split('T')[0];}
 function maxIso(a,b){if(!a&&!b)return'';if(!a)return b;if(!b)return a;return a>=b?a:b;}
 function daysDiff(iso){if(!iso)return null;return Math.floor((new Date(iso+'T00:00:00')-new Date().setHours(0,0,0,0))/(864e5));}
@@ -1527,19 +1528,21 @@ function dashHTML(){
     </svg>`;
   }
 
+  const dfOpen=S.dashFilterOpen===undefined?hasFilters:S.dashFilterOpen;
   const filterBar=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;box-shadow:var(--shadow-sm)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <span style="font-family:'Sora',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${dfOpen?'12px':'0'}">
+      <span style="font-family:'Sora',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer" id="dashFilterToggle" onclick="S.dashFilterOpen=!${dfOpen};render()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
         Dashboard Filters
         ${hasFilters?`<span class="badge b-blue" style="font-size:10px">${Object.values(df).filter(v=>Array.isArray(v)&&v.length>0).length} active</span>`:''}
       </span>
       <div style="display:flex;gap:8px">
         ${hasFilters?`<button class="btn btn-secondary btn-sm" id="dashClearFilters" style="color:var(--danger)">&#x2715; Clear</button>`:''}
-        <button class="btn btn-primary btn-sm" id="dashApplyFilters">Apply</button>
+        <button class="btn btn-secondary btn-sm" onclick="S.dashFilterOpen=!${dfOpen};render()">${dfOpen?'Hide':'Show'} filters</button>
+        <button class="btn btn-primary btn-sm" id="dashApplyFilters" style="${dfOpen?'':'display:none'}">Apply</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+    <div style="display:${dfOpen?'grid':'none'};grid-template-columns:repeat(6,1fr);gap:10px">
       <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Customer</div>${msHTML('dfCust',custOpts,df.customers||[],'Customers')}</div>
       <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Part No</div>${msHTML('dfPart',partOpts,df.partNos||[],'Parts')}</div>
       <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Date From</div><input type="date" id="dfDateFrom" value="${esc(df.dateFrom||'')}" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none;background:var(--surface);width:100%"></div>
@@ -1572,7 +1575,7 @@ function dashHTML(){
       <div class="stat-sub">From orders</div>
     </div>
     <div class="stat-card" style="border-top:3px solid #1D9E75">
-      <div class="stat-label">PO Value (India $) (US$)</div>
+      <div class="stat-label">PO Value (India, in $)</div>
       <div class="stat-value" style="font-size:20px;color:#1D9E75">${fmtI(poValueIN)}</div>
       <div class="stat-sub">From orders</div>
     </div>
@@ -1634,7 +1637,7 @@ function dashHTML(){
     <div style="padding:8px 0 4px">${svgBars(moArr,'poUS','poIN','#1E6FC2','#1D9E75',fmt,fmtI)}</div>
     <div style="display:flex;gap:16px;font-size:10px;color:var(--muted);margin-top:4px">
       <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1E6FC2;border-radius:2px;display:inline-block"></span>US PO Value ($)</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1D9E75;border-radius:2px;display:inline-block"></span>India PO Value (&#x20B9;)</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1D9E75;border-radius:2px;display:inline-block"></span>India PO Value ($)</span>
     </div>
   </div>`:`<div class="chart-card" style="margin-bottom:14px;text-align:center;padding:28px"><p style="color:var(--muted);font-size:13px">Monthly Order Activity &mdash; Financial access required</p></div>`;
 
@@ -1643,7 +1646,7 @@ function dashHTML(){
     <div style="padding:8px 0 4px">${svgBars(moArr,'shipUS','shipIN','#639922','#534AB7',fmt,fmtI)}</div>
     <div style="display:flex;gap:16px;font-size:10px;color:var(--muted);margin-top:4px">
       <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#639922;border-radius:2px;display:inline-block"></span>US Sales ($)</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#534AB7;border-radius:2px;display:inline-block"></span>India Sales (&#x20B9;)</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#534AB7;border-radius:2px;display:inline-block"></span>India Sales ($)</span>
     </div>
   </div>`:`<div class="chart-card" style="margin-bottom:14px;text-align:center;padding:28px"><p style="color:var(--muted);font-size:13px">Monthly Shipment Activity &mdash; Financial access required</p></div>`;
 
@@ -1881,7 +1884,7 @@ function ordersHTML(){
           <td>${li===0?`<div class="action-btns">
             <button class="btn btn-secondary btn-sm" data-action="view" data-id="${o.id}">View</button>
             ${(isAdmin()||S.user?.role==='Staff')?`<button class="btn btn-secondary btn-sm" data-action="edit" data-id="${o.id}">${S.user?.role==='Staff'?'Update':'Edit'}</button>`:''}
-            ${isAdmin()?`<button class="btn btn-danger btn-sm" data-action="deleteOrder" data-id="${o.id}">Delete</button>`:''}
+            ${isAdmin()?`<button class="btn btn-secondary btn-sm" style="color:var(--danger)" data-action="deleteOrder" data-id="${o.id}">Delete</button>`:''}
           </div>`:'&nbsp;'}</td>
         </tr>`;
       }).join('');
@@ -2152,7 +2155,7 @@ function shipmentsHTML(){
             <button class="btn btn-secondary btn-sm" data-action="viewShipment" data-id="${s.id}">View</button>
             ${(isAdmin()||S.user?.role==='Staff')?`<button class="btn btn-secondary btn-sm" data-action="editShipment" data-id="${s.id}">${S.user?.role==='Staff'?'Update':'Edit'}</button>`:''}
             ${isAdmin()?`<button class="btn btn-purple btn-sm" data-action="relinkShipment" data-id="${s.id}">Re-link</button>`:''}
-            ${isAdmin()?`<button class="btn btn-danger btn-sm" data-action="deleteShipment" data-id="${s.id}">Delete</button>`:''}
+            ${isAdmin()?`<button class="btn btn-secondary btn-sm" style="color:var(--danger)" data-action="deleteShipment" data-id="${s.id}">Delete</button>`:''}
           </div>`:'&nbsp;'}</td>
         </tr>`;
       }).join('');
@@ -2871,7 +2874,7 @@ function overShipWarning(sh){
 function historyPanelHTML(){
   if(!USE_COLUMNS||!S.window||S.window.full||!S.window.from)return'';
   const to=addDaysISO(S.window.from,-1);
-  return`<div style="background:var(--info-l);border:1px solid var(--accent-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span>Showing open orders and everything since <b>${esc(S.window.from)}</b>. Older records are not loaded.</span><label>From <input type="date" id="histFrom" value="${esc(addDaysISO(S.window.from,-365))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><label>To <input type="date" id="histTo" value="${esc(to)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histLoadBtn">Load older history</button><span id="histMsg" style="color:var(--muted)"></span><div style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-top:1px solid var(--accent-mid);padding-top:8px"><b>Find old orders by part number</b><input id="histPart" placeholder="Part number" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"><label>Search back to <input type="date" id="histPartFrom" value="${esc(addDaysISO(S.window.from,-1825))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histPartBtn">Find &amp; load</button><span id="histPartMsg" style="color:var(--muted)"></span></div></div>`;
+  return`<div style="background:var(--info-l);border:1px solid var(--accent-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span>Showing open orders and everything since <b>${esc(fmtDate(S.window.from))}</b>. Older records are not loaded.</span><label>From <input type="date" id="histFrom" value="${esc(addDaysISO(S.window.from,-365))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><label>To <input type="date" id="histTo" value="${esc(to)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histLoadBtn">Load older history</button><span id="histMsg" style="color:var(--muted)"></span><div style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-top:1px solid var(--accent-mid);padding-top:8px"><b>Find old orders by part number</b><input id="histPart" placeholder="Part number" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"><label>Search back to <input type="date" id="histPartFrom" value="${esc(addDaysISO(S.window.from,-1825))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histPartBtn">Find &amp; load</button><span id="histPartMsg" style="color:var(--muted)"></span></div></div>`;
 }
 function mastersHTML(){const tab=S.masterTab;return`<div style="display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);width:fit-content;overflow:hidden"><button class="btn${tab==='customers'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none" data-master-tab="customers">Customers (${S.customers.length})</button><button class="btn${tab==='parts'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="parts">Part Numbers (${S.parts.length})</button><button class="btn${tab==='lists'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="lists">Dropdown lists</button></div>${tab==='customers'?custMasterHTML():tab==='lists'?listsMasterHTML():partMasterHTML()}`;}
 function custMasterHTML(){return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Add Customer</span></div><div class="master-form"><div style="display:grid;grid-template-columns:1.5fr 1fr 1.2fr auto;gap:8px;align-items:flex-end"><div class="fg"><label>Name *</label><input id="newCustName" placeholder="Acme Corp" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Contact</label><input id="newCustContact" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Email</label><input id="newCustEmail" type="email" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><button class="btn btn-primary btn-sm" id="addCustBtn" style="height:36px">+ Add</button></div><div id="custAddErr" style="display:none;color:var(--danger);font-size:12px;margin-top:6px"></div></div></div><div class="master-card"><div class="master-card-header"><span class="master-card-title">All Customers</span><span class="badge b-gray">${S.customers.length}</span></div><div class="master-list">${S.customers.map(c=>{const isEd=S.masterCustEdit===c.id;const pc=S.parts.filter(p=>p.custId===c.id).length;return`<div class="master-row">${isEd?`<div class="inline-edit-row"><input class="edit-input" id="ecn${c.id}" value="${esc(c.name)}" style="flex:1.5"><input class="edit-input" id="ecc${c.id}" value="${esc(c.contact)}" style="flex:1"><input class="edit-input" id="ece${c.id}" value="${esc(c.email)}" type="email" style="flex:1.2"><button class="btn btn-success btn-sm" data-action="saveCust" data-id="${c.id}">Save</button><button class="btn btn-secondary btn-sm" data-action="cancelCustEdit">Cancel</button></div>`:`<div class="master-row-info"><span class="master-row-name">${esc(c.name)}</span><span class="master-row-sub">${esc(c.contact||'-')} - ${pc} part${pc!==1?'s':''}</span></div><div class="master-row-actions"><button class="btn btn-secondary btn-sm" data-action="editCust" data-id="${c.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="deleteCust" data-id="${c.id}">Delete</button></div>`}</div>`;}).join('')||`<div class="empty">No customers.</div>`}</div></div></div>`;}
@@ -3028,7 +3031,7 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
   }
   S.editing=null;S.page='orders';render();}};render();});document.getElementById('wizNextBtn')?.addEventListener('click',()=>{S.editing=collectOrderForm();S.orderWizStep=Math.min(3,(S.orderWizStep||1)+1);render();});
   document.getElementById('wizPrevBtn')?.addEventListener('click',()=>{S.editing=collectOrderForm();S.orderWizStep=Math.max(1,(S.orderWizStep||1)-1);render();});
-  document.getElementById('addLineBtn')?.addEventListener('click',()=>{const data=collectOrderForm();data.lines.push(emptyLine(data.lines.length+1));S.editing=data;render();});document.getElementById('custNameSel')?.addEventListener('change',ev=>{const data=collectOrderForm();data.customerName=ev.target.value;data.lines=data.lines.map(l=>({...l,partNo:''}));S.editing=data;render();});document.querySelectorAll('[data-f^="lines."]').forEach(el=>{const sub=el.dataset.f.split('.')[2];if(['poQty','indiaRate','usRate','inTransitDays','shortCloseQty'].includes(sub)){el.addEventListener('change',()=>{S.editing=collectOrderForm();render();});}});document.getElementById('consignToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('togLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.getElementById('newShipFromOrderBtn')?.addEventListener('click',()=>{const o=S.editing;S.editingShipment={lines:[{...emptyShipLine(1),customerPONo:o.customerPONo||'',shippedTo:o.customerName||''}],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page='new-shipment';render();});document.getElementById('relinkAllOrderLinesBtn')?.addEventListener('click',ev=>{const btn=ev.target.closest('[data-id]');const id=parseInt(btn?.dataset.id||ev.target.dataset.id);S.relinkOrderId=id;S.relinkOrderLineIdx=null;S.showOrderRelink=true;render();});document.getElementById('backShipBtn')?.addEventListener('click',()=>{S.page='shipments';S.editingShipment=null;S.shipWizStep=1;render();});document.getElementById('saveShipBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();if(!data.shippingInvoiceNo){alert('Shipping Invoice No is required.');return;}S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save shipment <strong>${esc(data.shippingInvoiceNo)}</strong>? This will auto-update Delivered & In Transit on linked order lines.${overShipWarning(data)}`,onConfirm:()=>{
+  document.getElementById('addLineBtn')?.addEventListener('click',()=>{const data=collectOrderForm();data.lines.push(emptyLine(data.lines.length+1));S.editing=data;render();});document.getElementById('custNameSel')?.addEventListener('change',ev=>{const data=collectOrderForm();data.customerName=ev.target.value;data.lines=data.lines.map(l=>({...l,partNo:''}));S.editing=data;render();});document.querySelectorAll('[data-f^="lines."]').forEach(el=>{const sub=el.dataset.f.split('.')[2];if(['poQty','indiaRate','usRate','inTransitDays','shortCloseQty'].includes(sub)){el.addEventListener('change',()=>{S.editing=collectOrderForm();render();});}});document.getElementById('consignToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('togLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.getElementById('newShipFromOrderBtn')?.addEventListener('click',()=>{const o=S.editing;S.editingShipment={lines:[{...emptyShipLine(1),customerPONo:o.customerPONo||'',shippedTo:o.customerName||''}],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page='new-shipment';render();});document.getElementById('relinkAllOrderLinesBtn')?.addEventListener('click',ev=>{const btn=ev.target.closest('[data-id]');const id=parseInt(btn?.dataset.id||ev.target.dataset.id);S.relinkOrderId=id;S.relinkOrderLineIdx=null;S.showOrderRelink=true;render();});document.getElementById('backShipBtn')?.addEventListener('click',()=>{S.page='shipments';S.editingShipment=null;S.shipWizStep=1;render();});document.getElementById('saveShipBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();if(!data.shippingInvoiceNo){notice('Shipping Invoice No is required.','warn');return;}S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save shipment <strong>${esc(data.shippingInvoiceNo)}</strong>? This will auto-update Delivered & In Transit on linked order lines.${overShipWarning(data)}`,onConfirm:()=>{
   data.saved=true;
   if(S.page==='new-shipment'){
     data.id=S.nextShipId++;S.shipments.push(data);
@@ -3284,7 +3287,7 @@ function bindImportModal(){
   }
   document.getElementById('importFileInput')?.addEventListener('change',e=>{const f=e.target.files[0];if(f){IMP.file=f;updateDropZoneLabel(f.name);}});
   document.getElementById('importExtractBtn')?.addEventListener('click',async()=>{
-    if(!IMP.file){alert('Please select a file first.');return;}
+    if(!IMP.file){notice('Please select a file first.','warn');return;}
     IMP.step='processing';showImportModal();
     try{IMP.extracted=await extractWithClaude(IMP.file);IMP.step='review';}
     catch(err){IMP.error=err.message;IMP.step='error';}
@@ -3454,7 +3457,7 @@ function bindShipImportModal(){
   }
   document.getElementById('shipImportFileInput')?.addEventListener('change',e=>{const f=e.target.files[0];if(f){SHIP_IMP.file=f;updateShipDropZoneLabel(f.name);}});
   document.getElementById('shipImportExtractBtn')?.addEventListener('click',async()=>{
-    if(!SHIP_IMP.file){alert('Please select a file first.');return;}
+    if(!SHIP_IMP.file){notice('Please select a file first.','warn');return;}
     SHIP_IMP.step='processing';showShipImportModal();
     try{SHIP_IMP.extracted=await extractShipmentWithClaude(SHIP_IMP.file);SHIP_IMP.step='review';}
     catch(err){SHIP_IMP.error=err.message;SHIP_IMP.step='error';}
