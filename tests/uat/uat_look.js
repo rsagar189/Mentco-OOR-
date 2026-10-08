@@ -11,5 +11,14 @@ const U=require('./lib');const H=require('./helpers');const {ok}=U;
   const tb=document.querySelector('.topbar').getBoundingClientRect();return{h:tb.height,top:tb.top,bad:[...bad].slice(0,5)};});
  for(const p of ['dashboard','orders','shipments','masters','users']){await H.nav(A,p);await H.sleep(400);const m=await measure();
   ok('LOOK-'+p,m.h===60&&m.top===0&&m.bad.length===0,p+': top bar 60px like every tab; only Inter/Source Serif, sizes >= 11, weights <= 600',JSON.stringify(m));}
+ // 1280px laptop: form fields must stay inside their card (order line, shipment line) and viewers get no 'New Shipment' button
+ await A.setViewportSize({width:1280,height:900});
+ await A.evaluate(()=>{S.editing={lines:[emptyLine(1)],consignment:false,orderDate:today()};S.orderWizStep=2;S.page='new-order';render();});await H.sleep(400);
+ const o1=await A.evaluate(()=>{const c=document.querySelector('.line-item').getBoundingClientRect();return[...document.querySelectorAll('.line-item input,.line-item select,.line-item textarea')].filter(e=>e.getBoundingClientRect().right>c.right+1).length;});
+ ok('LOOK-orderform-1280',o1===0,'order line fields stay inside their card at 1280px wide',String(o1));
+ await A.evaluate(()=>{S.editingShipment={lines:[emptyShipLine(1)],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=2;S.page='new-shipment';render();});await H.sleep(400);
+ const o2=await A.evaluate(()=>{const c=document.querySelector('.line-item').getBoundingClientRect();return[...document.querySelectorAll('.line-item input,.line-item select,.line-item textarea')].filter(e=>e.getBoundingClientRect().right>c.right+1).length;});
+ ok('LOOK-shipform-1280',o2===0,'shipment line fields stay inside their card at 1280px wide',String(o2));
+ 
  const f=U.results.filter(r=>!r.pass);console.log(`\n=== LOOK: ${U.results.length-f.length} passed, ${f.length} failed ===`);await br.close();process.exit(0);
 })().catch(e=>{console.error('ERR',e.message);process.exit(2);});
