@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mentco — PO Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
    MENTCO PO MANAGER v9 — DESIGN SYSTEM
@@ -40,8 +40,8 @@
 
 /* ── FONTS ── */
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased}
-h1,h2,h3,.sora{font-family:'Sora',sans-serif}
-.mono{font-family:'JetBrains Mono',monospace}
+h1,h2,h3,.sora{font-family:Inter,sans-serif}
+.mono{font-family:Inter,sans-serif}
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s ease;white-space:nowrap;letter-spacing:.01em}
@@ -64,19 +64,19 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .login-panel-left::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(59,158,255,.12) 0%,transparent 70%);bottom:-100px;right:-100px;pointer-events:none}
 .login-left-content{position:relative;z-index:1;text-align:center;max-width:360px}
 .login-left-globe{width:80px;height:80px;background:rgba(30,111,194,.3);border:1px solid rgba(59,158,255,.3);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;backdrop-filter:blur(10px)}
-.login-left-tagline{font-family:'Sora',sans-serif;font-size:28px;font-weight:700;color:#E2E8F0;line-height:1.3;margin-bottom:12px}
+.login-left-tagline{font-family:Inter,sans-serif;font-size:28px;font-weight:600;color:#E2E8F0;line-height:1.3;margin-bottom:12px}
 .login-left-sub{font-size:14px;color:#64748B;line-height:1.6}
 .login-left-dots{display:flex;gap:8px;justify-content:center;margin-top:36px}
 .login-left-dots span{width:6px;height:6px;border-radius:50%;background:rgba(59,158,255,.3)}
 .login-left-dots span:first-child{background:rgba(59,158,255,.8);width:20px;border-radius:3px}
-.login-version{position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:11px;color:var(--sb-section);font-family:'JetBrains Mono',monospace}
+.login-version{position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:11px;color:var(--sb-section);font-family:Inter,sans-serif}
 .login-panel-right{display:flex;align-items:center;justify-content:center;padding:48px;background:var(--surface)}
 .login-card{width:100%;max-width:400px}
 .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
 .login-logo img{height:36px;object-fit:contain}
-.login-logo-text{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--text)}
+.login-logo-text{font-family:Inter,sans-serif;font-size:20px;font-weight:600;color:var(--text)}
 .login-logo span{font-size:18px;font-weight:600}
-.login-title{font-family:'Sora',sans-serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px}
+.login-title{font-family:Inter,sans-serif;font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px}
 .login-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
 .fgrp{margin-bottom:16px}
 .flabel{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
@@ -85,7 +85,7 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .login-err{background:var(--danger-l);border:1px solid var(--danger-mid);color:var(--danger);font-size:12px;padding:10px 14px;border-radius:var(--rs);margin-bottom:14px;display:none}
 .login-hint{margin-top:20px;padding:14px;background:var(--bg);border-radius:var(--rs);border:1px solid var(--border);font-size:11px;color:var(--muted)}
 .login-hint b{display:block;margin-bottom:5px;font-size:12px;color:var(--text)}
-.login-hint span{display:block;font-family:'JetBrains Mono',monospace;padding:2px 0;font-size:11px}
+.login-hint span{display:block;font-family:Inter,sans-serif;padding:2px 0;font-size:11px}
 
 /* ── APP SHELL ── */
 .app{display:flex;min-height:100vh}
@@ -102,19 +102,19 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 
 .sb-logo{padding:16px 16px;border-bottom:1px solid var(--sb-border);display:flex;align-items:center;gap:10px;min-height:60px}
 .sb-logo-icon{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.sb-logo-text{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--sb-text-active);white-space:nowrap}
+.sb-logo-text{font-family:Inter,sans-serif;font-size:14px;font-weight:600;color:var(--sb-text-active);white-space:nowrap}
 
 .sb-nav{flex:1;padding:10px 8px;overflow-y:auto;overflow-x:hidden}
 .sb-nav::-webkit-scrollbar{width:3px}.sb-nav::-webkit-scrollbar-track{background:transparent}.sb-nav::-webkit-scrollbar-thumb{background:var(--sb-border);border-radius:2px}
 
-.nav-section-label{font-size:9px;font-weight:700;color:var(--sb-section);text-transform:uppercase;letter-spacing:.8px;padding:12px 10px 4px;white-space:nowrap}
+.nav-section-label{font-size:11px;font-weight:600;color:var(--sb-section);text-transform:uppercase;letter-spacing:.8px;padding:12px 10px 4px;white-space:nowrap}
 .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--sb-text);font-size:13px;font-weight:500;transition:all .14s;margin-bottom:1px;user-select:none;white-space:nowrap;position:relative}
 .nav-item:hover{background:var(--sb-hover);color:var(--sb-text-active)}
 .nav-item.active{background:var(--sb-active-bg);color:var(--sb-active-accent)}
 .nav-item.active::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:3px;background:var(--sb-active-accent);border-radius:0 2px 2px 0}
 .nav-item svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.75;flex-shrink:0}
 .nav-label{flex:1;min-width:0}
-.nav-badge{background:var(--sb-active-accent);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0}
+.nav-badge{background:var(--sb-active-accent);color:#fff;font-size:11px;font-weight:600;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0}
 .nav-badge.warn{background:var(--warn)}
 
 .sb-footer{padding:10px 8px;border-top:1px solid var(--sb-border)}
@@ -124,10 +124,10 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .sidebar.collapsed .sb-collapse-btn svg{transform:rotate(180deg)}
 
 .user-row{display:flex;align-items:center;gap:9px;padding:7px 10px}
-.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-d) 100%);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(59,158,255,.3)}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-d) 100%);display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;border:2px solid rgba(59,158,255,.3)}
 .user-info{flex:1;min-width:0}
 .user-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--sb-text-active)}
-.user-role-lbl{font-size:10px;color:var(--sb-section)}
+.user-role-lbl{font-size:11px;color:var(--sb-section)}
 .logout-btn{background:none;border:none;cursor:pointer;color:var(--sb-text);padding:5px;border-radius:6px;display:flex;align-items:center;transition:color .15s;flex-shrink:0}
 .logout-btn:hover{color:#F87171}
 
@@ -152,13 +152,13 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 /* ── TOPBAR ── */
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
 .topbar-left{display:flex;align-items:center;gap:12px}
-.topbar-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+.topbar-title{font-family:Inter,sans-serif;font-size:16px;font-weight:600;color:var(--text)}
 .topbar-breadcrumb{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
 .topbar-breadcrumb span{color:var(--light)}
 .topbar-right{display:flex;align-items:center;gap:10px}
 
 /* ── ALERT STRIP ── */
-.alert-strip{display:flex;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(90deg,var(--warn-l) 0%,#FFF7ED 100%);border:1px solid var(--warn-mid);border-radius:var(--rs);margin-bottom:16px;font-size:12.5px}
+.alert-strip{display:flex;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(90deg,var(--warn-l) 0%,#FFF7ED 100%);border:1px solid var(--warn-mid);border-radius:var(--rs);margin-bottom:16px;font-size:13px}
 .alert-strip svg{flex-shrink:0;color:var(--warn)}
 .alert-strip-text{flex:1;color:#92400E;font-weight:500}
 .alert-strip-link{font-size:12px;color:var(--warn);font-weight:600;cursor:pointer;text-decoration:underline;white-space:nowrap}
@@ -185,32 +185,32 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);transition:box-shadow .15s}
 .stat-card:hover{box-shadow:var(--shadow)}
-.stat-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
-.stat-value{font-family:'Sora',sans-serif;font-size:28px;font-weight:700;letter-spacing:-.8px;margin-bottom:4px;color:var(--text)}
+.stat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.stat-value{font-family:Inter,sans-serif;font-size:28px;font-weight:600;letter-spacing:-.8px;margin-bottom:4px;color:var(--text)}
 .stat-sub{font-size:12px;color:var(--muted)}
 .dash-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm)}
-.chart-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chart-title{font-family:Inter,sans-serif;font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .chart-subtitle{font-size:11px;color:var(--muted);font-weight:400;font-family:'Inter',sans-serif}
 .bar-chart{display:flex;flex-direction:column;gap:9px}
 .bar-row{display:flex;align-items:center;gap:10px}
 .bar-label{font-size:12px;color:var(--muted);width:110px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar-track{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px;background:var(--accent)}
-.bar-val{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);width:70px;text-align:right;flex-shrink:0}
+.bar-val{font-size:11px;font-family:Inter,sans-serif;color:var(--muted);width:70px;text-align:right;flex-shrink:0}
 .mini-table{width:100%;border-collapse:collapse}
-.mini-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.mini-table th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
 .mini-table td{padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border-soft)}
 .mini-table tr:last-child td{border-bottom:none}
 .mini-table tr:hover td{background:var(--bg)}
 .month-bars{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:8px}
 .month-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
 .month-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px}
-.month-label{font-size:10px;color:var(--muted)}
+.month-label{font-size:11px;color:var(--muted)}
 .aging-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .aging-box{padding:10px;border-radius:var(--rs);text-align:center}
 .aging-bar{display:flex;gap:2px;height:24px;border-radius:4px;overflow:hidden;margin-top:8px}
-.aging-seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff}
+.aging-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff}
 .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
 .toolbar-left{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .search-box{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 13px;box-shadow:var(--shadow-sm);transition:border-color .15s}
@@ -222,16 +222,16 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .qs-strip{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
 .qs-item{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .14s}
 .qs-item:hover,.qs-item.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent)}
-.qs-item span{font-weight:700;margin-left:3px}
+.qs-item span{font-weight:600;margin-left:3px}
 /* filter panel */
 .filter-panel{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;display:none;box-shadow:var(--shadow-sm)}
 .filter-panel.open{display:block}
-.fp-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:12px}
+.fp-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:12px}
 .fp-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
 .fp-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
 .fp-grid-2{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .fg-f{display:flex;flex-direction:column;gap:5px}
-.fg-f label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.fg-f label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 .fg-f select,.fg-f input{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none;width:100%}
 .fg-f select:focus,.fg-f input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-l)}
 .fp-actions{display:flex;gap:8px}
@@ -245,7 +245,7 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .ms-item:hover{background:var(--bg)}
 .ms-item input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--accent)}
 .ms-item label{cursor:pointer;flex:1}
-.ms-select-all{border-bottom:1px solid var(--border-soft);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.ms-select-all{border-bottom:1px solid var(--border-soft);font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
 .ms-tag{display:inline-flex;align-items:center;gap:3px;background:var(--accent-l);color:var(--accent);border-radius:10px;padding:1px 6px;font-size:11px;font-weight:500;margin:1px}
 .ms-tag.purple{background:var(--purple-l);color:var(--purple)}
 .active-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
@@ -256,7 +256,7 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto;box-shadow:var(--shadow-sm)}
 .dt{width:100%;border-collapse:collapse;min-width:600px}
 .dt thead{position:sticky;top:0;z-index:5}
-.dt th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:11px 14px;text-align:left;border-bottom:1.5px solid var(--border);background:var(--surface-2);white-space:nowrap}
+.dt th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:11px 14px;text-align:left;border-bottom:1.5px solid var(--border);background:var(--surface-2);white-space:nowrap}
 .dt td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
 .dt tr:last-child td{border-bottom:none}
 .table-wrap.tall{max-height:calc(100vh - 230px)}
@@ -283,7 +283,7 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .prog-bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .3s}
 .prog-bar-fill.done{background:var(--success)}
 .prog-bar-fill.warn{background:var(--warn)}
-.prog-pct{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap}
+.prog-pct{font-family:Inter,sans-serif;font-size:11px;color:var(--muted);white-space:nowrap}
 .action-btns{display:flex;gap:5px;flex-wrap:wrap}
 .empty{text-align:center;padding:48px 24px;color:var(--muted);font-size:13px}
 .empty svg{width:36px;height:36px;stroke:var(--border);margin:0 auto 12px;display:block}
@@ -296,15 +296,15 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .export-info .export-desc{font-size:12px;color:var(--muted)}
 .relink-modal-box{background:var(--surface);border-radius:14px;padding:28px;width:560px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto}
 .relink-section{margin-bottom:18px}
-.relink-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.relink-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .relink-line-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:14px;margin-bottom:10px}
 .relink-line-header{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.relink-current{font-size:11px;color:var(--muted);margin-bottom:10px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--rs);padding:6px 10px}
+.relink-current{font-size:11px;color:var(--muted);margin-bottom:10px;font-family:Inter,sans-serif;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--rs);padding:6px 10px}
 .relink-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 .relink-or{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:11px;color:var(--light)}
 .relink-or::before,.relink-or::after{content:'';flex:1;border-top:1px solid var(--border)}
-.rl-label{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
-.rlinput{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;background:var(--surface);color:var(--text)}
+.rl-label{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.rlinput{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:Inter,sans-serif;font-size:12px;outline:none;width:100%;background:var(--surface);color:var(--text)}
 .rlinput:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-l)}
 .rlselect{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none;width:100%;background:var(--surface);color:var(--text)}
 .rlselect:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-l)}
@@ -312,13 +312,13 @@ h1,h2,h3,.sora{font-family:'Sora',sans-serif}
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm)}
 .form-section{padding:22px 24px;border-bottom:1px solid var(--border-soft)}
 .form-section:last-child{border-bottom:none}
-.sec-title{font-family:'Sora',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:16px}
+.sec-title{font-family:Inter,sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:16px}
 .fg{display:flex;flex-direction:column;gap:5px}
-.fg label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.fg label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 .fg input,.fg select,.fg textarea{padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none;transition:all .15s}
 .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l)}
 .fg input[readonly]{background:var(--bg);color:var(--muted);cursor:not-allowed}
-.computed{background:var(--bg)!important;color:var(--text)!important;font-family:'JetBrains Mono',monospace!important;font-size:12px!important;cursor:not-allowed!important}
+.computed{background:var(--bg)!important;color:var(--text)!important;font-family:Inter,sans-serif!important;font-size:12px!important;cursor:not-allowed!important}
 input[type=date]{padding:8px 11px}
 input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
@@ -336,20 +336,20 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .line-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:18px;margin-bottom:14px;transition:border-color .15s}
 .line-item:focus-within{border-color:var(--accent-mid)}
 .li-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
-.li-no{font-family:'Sora',sans-serif;font-size:13px;font-weight:700}
+.li-no{font-family:Inter,sans-serif;font-size:13px;font-weight:600}
 .li-sub{margin-top:14px;padding-top:12px;border-top:1px dashed var(--border-soft)}
-.li-sub-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--light);margin-bottom:12px}
+.li-sub-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--light);margin-bottom:12px}
 .add-line{display:flex;align-items:center;gap:6px;padding:10px 16px;border:1.5px dashed var(--border);border-radius:var(--rs);background:transparent;cursor:pointer;color:var(--muted);font-family:inherit;font-size:13px;font-weight:500;width:100%;justify-content:center;margin-top:4px;transition:all .15s}
 .add-line:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
 .form-actions{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
 .shipment-link-panel{background:var(--purple-l);border:1px solid var(--purple-mid);border-radius:var(--rs);padding:14px 16px;margin-top:12px}
-.shipment-link-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--purple);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.shipment-link-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--purple);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .shipment-link-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--purple-mid);font-size:12px}
 .shipment-link-row:last-child{border-bottom:none}
-.sync-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--purple);background:var(--purple-l);border:1px solid var(--purple-mid);border-radius:10px;padding:2px 7px}
+.sync-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--purple);background:var(--purple-l);border:1px solid var(--purple-mid);border-radius:10px;padding:2px 7px}
 .master-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;max-width:780px;box-shadow:var(--shadow-sm)}
 .master-card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface-2)}
-.master-card-title{font-family:'Sora',sans-serif;font-size:14px;font-weight:700}
+.master-card-title{font-family:Inter,sans-serif;font-size:14px;font-weight:600}
 .master-form{padding:14px 18px;background:var(--bg);border-bottom:1px solid var(--border)}
 .master-list{max-height:320px;overflow-y:auto}
 .master-row{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border-soft);transition:background .12s}
@@ -367,14 +367,14 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .modal-icon svg{width:22px;height:22px;fill:none;stroke-width:2}
 .modal-icon.warn{background:var(--warn-l)}.modal-icon.warn svg{stroke:var(--warn)}
 .modal-icon.danger{background:var(--danger-l)}.modal-icon.danger svg{stroke:var(--danger)}
-.modal h3{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px}
+.modal h3{font-family:Inter,sans-serif;font-size:17px;font-weight:600;margin-bottom:8px}
 .modal p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:20px}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end}
 /* ── DOCUMENT IMPORT ── */
 .import-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:400;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .import-modal{background:var(--surface);border-radius:16px;width:700px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
 .import-modal-header{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between}
-.import-modal-header h3{font-family:'Sora',sans-serif;font-size:17px;font-weight:700}
+.import-modal-header h3{font-family:Inter,sans-serif;font-size:17px;font-weight:600}
 .import-close{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:6px;display:flex;align-items:center;transition:color .15s}
 .import-close:hover{color:var(--danger)}
 .import-body{padding:20px 24px 24px}
@@ -382,7 +382,7 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-l)}
 .drop-zone-icon{width:52px;height:52px;background:var(--accent-l);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
 .drop-zone-icon svg{width:26px;height:26px;stroke:var(--accent);fill:none;stroke-width:1.8}
-.drop-zone h4{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px}
+.drop-zone h4{font-family:Inter,sans-serif;font-size:15px;font-weight:600;margin-bottom:6px}
 .drop-zone p{color:var(--muted);font-size:13px}
 .drop-zone .file-types{display:inline-flex;gap:6px;margin-top:10px}
 .drop-zone .ft-tag{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500;color:var(--muted)}
@@ -392,15 +392,15 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .import-spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .import-processing p{color:var(--muted);font-size:13px;margin-top:6px}
-.import-processing h4{font-family:'Sora',sans-serif;font-size:15px;font-weight:700}
+.import-processing h4{font-family:Inter,sans-serif;font-size:15px;font-weight:600}
 .review-section{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
-.review-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-family:'Sora',sans-serif}
+.review-section-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-family:Inter,sans-serif}
 .review-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .review-field{display:flex;flex-direction:column;gap:4px}
-.review-label{font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;gap:5px}
+.review-label{font-size:11px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;gap:5px}
 .review-input{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;background:var(--surface);width:100%;transition:border-color .15s}
 .review-input:focus{border-color:var(--accent)}
-.conf-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px}
+.conf-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;padding:2px 6px;border-radius:10px}
 .conf-high{background:var(--success-l);color:var(--success)}
 .conf-low{background:var(--warn-l);color:var(--warn)}
 .conf-none{background:var(--bg);color:var(--light);border:1px solid var(--border)}
@@ -410,19 +410,19 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .import-trigger-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
 .review-lines-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .review-line-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px}
-.review-line-item-title{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;font-family:'Sora',sans-serif}
+.review-line-item-title{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;font-family:Inter,sans-serif}
 /* ── AUDIT TRAIL ── */
 .audit-panel{border-top:1px solid var(--border-soft);margin-top:20px}
 .audit-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;cursor:pointer;user-select:none;transition:background .12s}
 .audit-toggle:hover{background:var(--bg)}
-.audit-toggle-title{font-family:'Sora',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.audit-toggle-title{font-family:Inter,sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
 .audit-body{padding:0 22px 20px;display:none}
 .audit-body.open{display:block}
 .audit-entry{display:grid;grid-template-columns:140px 160px 120px 1fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--border-soft);font-size:12px;align-items:start}
 .audit-entry:last-child{border-bottom:none}
-.audit-ts{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--light)}
+.audit-ts{font-family:Inter,sans-serif;font-size:11px;color:var(--light)}
 .audit-user{font-weight:500;color:var(--text)}
-.audit-action{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.audit-action{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
 .audit-action.created{background:var(--accent-l);color:var(--accent)}
 .audit-action.updated{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
 .audit-action.short-closed{background:var(--warn-l);color:var(--warn)}
@@ -431,9 +431,9 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .audit-changes{color:var(--muted);line-height:1.7}
 .audit-change-row{display:flex;gap:6px;align-items:baseline;font-size:11px}
 .audit-field{color:var(--text);font-weight:500;min-width:140px}
-.audit-from{color:var(--danger);font-family:'JetBrains Mono',monospace;font-size:10px}
-.audit-to{color:var(--success);font-family:'JetBrains Mono',monospace;font-size:10px}
-.audit-arrow{color:var(--light);font-size:10px}
+.audit-from{color:var(--danger);font-family:Inter,sans-serif;font-size:11px}
+.audit-to{color:var(--success);font-family:Inter,sans-serif;font-size:11px}
+.audit-arrow{color:var(--light);font-size:11px}
 /* line status badges */
 .b-cancelled{background:var(--danger-l);color:var(--danger)}
 .b-short-closed{background:var(--warn-l);color:var(--warn)}
@@ -447,27 +447,27 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .wiz-step.active{background:var(--accent-l);color:var(--accent);font-weight:600}
 .wiz-step.done{background:var(--success-l);color:var(--success)}
 .wiz-step.done:hover{background:#DCFCE7}
-.wiz-step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:var(--border);color:var(--muted)}
+.wiz-step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;background:var(--border);color:var(--muted)}
 .wiz-step.active .wiz-step-num{background:var(--accent);color:#fff}
 .wiz-step.done .wiz-step-num{background:var(--success);color:#fff}
-.wiz-step-label{font-family:'Sora',sans-serif}
+.wiz-step-label{font-family:Inter,sans-serif}
 .wiz-nav{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-soft)}
 /* summary panel */
 .wiz-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow-sm);position:sticky;top:76px}
-.wiz-summary-title{font-family:'Sora',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.wiz-summary-title{font-family:Inter,sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
 .wiz-summary-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border-soft);font-size:12px;gap:8px}
 .wiz-summary-row:last-child{border-bottom:none}
 .wiz-summary-label{color:var(--muted);flex-shrink:0}
-.wiz-summary-val{font-weight:500;color:var(--text);text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wiz-summary-val{font-weight:500;color:var(--text);text-align:right;font-family:Inter,sans-serif;font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wiz-summary-divider{height:1px;background:var(--border);margin:10px 0}
-.wiz-summary-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--light);margin:10px 0 4px}
+.wiz-summary-section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--light);margin:10px 0 4px}
 /* review step */
 .review-header-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .review-field-row{display:flex;flex-direction:column;gap:2px}
-.review-field-label{font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.4px}
+.review-field-label{font-size:11px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.4px}
 .review-field-val{font-size:13px;color:var(--text);font-weight:500}
 .review-line-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:14px;margin-bottom:10px}
-.review-line-title{font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.review-line-title{font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 
 /* ── ORDER FORM WIZARD ── */
 .wiz-shell{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
@@ -478,25 +478,25 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
 .wiz-step:hover{background:var(--bg)}
 .wiz-step.active{background:var(--accent-l);color:var(--accent);font-weight:600}
 .wiz-step.done{background:var(--success-l);color:var(--success)}
-.wiz-step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:var(--border);color:var(--muted)}
+.wiz-step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;background:var(--border);color:var(--muted)}
 .wiz-step.active .wiz-step-num{background:var(--accent);color:#fff}
 .wiz-step.done .wiz-step-num{background:var(--success);color:#fff}
-.wiz-step-label{font-family:'Sora',sans-serif}
+.wiz-step-label{font-family:Inter,sans-serif}
 .wiz-nav{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-soft)}
 .wiz-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow-sm);position:sticky;top:76px}
-.wiz-summary-title{font-family:'Sora',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.wiz-summary-title{font-family:Inter,sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
 .wiz-summary-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border-soft);font-size:12px;gap:8px}
 .wiz-summary-row:last-child{border-bottom:none}
 .wiz-summary-label{color:var(--muted);flex-shrink:0}
-.wiz-summary-val{font-weight:500;color:var(--text);text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wiz-summary-val{font-weight:500;color:var(--text);text-align:right;font-family:Inter,sans-serif;font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wiz-summary-divider{height:1px;background:var(--border);margin:10px 0}
-.wiz-summary-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--light);margin:10px 0 4px}
+.wiz-summary-section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--light);margin:10px 0 4px}
 .review-header-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .review-field-row{display:flex;flex-direction:column;gap:2px}
-.review-field-label{font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.4px}
+.review-field-label{font-size:11px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.4px}
 .review-field-val{font-size:13px;color:var(--text);font-weight:500}
 .review-line-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:14px;margin-bottom:10px}
-.review-line-title{font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.review-line-title{font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 
 /* ═══════════════════════════════════════
    REFINED THEME (v1.7) — restrained palette, serif titles, hairlines, quiet cards.
@@ -520,7 +520,7 @@ input[type=date][readonly]::-webkit-calendar-picker-indicator{display:none}
   --shadow-lg:0 16px 40px rgba(16,24,40,.14);
 }
 body{font-size:14px;letter-spacing:-.003em;font-feature-settings:'tnum' 1,'cv11' 1}
-.serif,.topbar-title,.login-title,.login-left-tagline,.chart-title,.master-card-title,.fp-title,.wiz-summary-title{font-family:'Source Serif 4',Georgia,'Times New Roman',serif}
+.serif,.topbar-title,.login-title,.login-left-tagline,.chart-title,.master-card-title,.sb-logo-text,.stat-value{font-family:'Source Serif 4',Georgia,'Times New Roman',serif}
 .topbar-title{font-size:20px;font-weight:600;letter-spacing:-.01em}
 .topbar{height:60px;box-shadow:none;border-bottom:1px solid var(--border)}
 .chart-title{font-size:16px;font-weight:600;letter-spacing:-.005em}
@@ -529,7 +529,7 @@ body{font-size:14px;letter-spacing:-.003em;font-feature-settings:'tnum' 1,'cv11'
 .login-left-sub{color:#8795AB}
 .login-left-globe{background:rgba(143,184,238,.10);border:1px solid rgba(143,184,238,.25);border-radius:18px}
 /* numbers: one typeface, aligned digits (no code-style monospace) */
-[style*="JetBrains Mono"],.mono{font-family:Inter,sans-serif !important;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1,'zero' 1}
+
 /* sidebar */
 .sb-logo{min-height:64px;padding:18px 18px}
 .sb-logo-text{font-family:'Source Serif 4',Georgia,serif;font-size:17px;font-weight:600;letter-spacing:.005em}
@@ -559,7 +559,7 @@ body{font-size:14px;letter-spacing:-.003em;font-feature-settings:'tnum' 1,'cv11'
 .dt th{font-size:11px;font-weight:600;letter-spacing:.07em;color:var(--muted);background:var(--surface-2);padding:12px 14px}
 .dt td{padding:13px 14px;font-size:13px}
 .dt tbody tr:hover td{background:#FAFBFD}
-.mini-table th{font-size:10.5px;letter-spacing:.07em}
+.mini-table th{font-size:11px;letter-spacing:.07em}
 /* badges: soft, low-saturation */
 .badge{font-weight:600;font-size:11px;padding:3px 10px;letter-spacing:.005em}
 .b-blue{background:#EAF1FA;color:#1F4E8C}.b-green{background:#E9F4EE;color:#2F7D5B}.b-red{background:#F9EAE8;color:#A23B33}
@@ -576,6 +576,20 @@ body{font-size:14px;letter-spacing:-.003em;font-feature-settings:'tnum' 1,'cv11'
 .dt th{white-space:nowrap}
 .dt td,.dt th{padding-left:12px;padding-right:12px}
 .wiz-summary-val,.audit-ts{font-family:Inter,sans-serif !important;font-size:12px !important;font-variant-numeric:tabular-nums}
+/* ONE type system: Inter for all text; serif only for brand, page title, card titles and big numbers */
+button,input,select,textarea{font-family:inherit}
+b,strong,th{font-weight:600}
+.chart-title .badge,.chart-title .chart-subtitle,.master-card-title .badge,.stat-value .badge{font-family:Inter,sans-serif}
+.chart-title,.master-card-title{font-size:16px;font-weight:600;letter-spacing:-.005em}
+.topbar{flex-shrink:0}
+.sidebar .nav-section-label{font-size:11px;letter-spacing:.08em}
+.btn-purple,.btn-warn{background:var(--surface);box-shadow:none}
+.btn-purple{color:var(--purple);border-color:var(--purple-mid)}.btn-purple:hover{background:var(--purple-l)}
+.btn-warn{color:var(--warn);border-color:var(--warn-mid)}.btn-warn:hover{background:var(--warn-l)}
+.btn-danger.btn-sm{background:var(--surface);color:var(--danger);border-color:var(--danger-mid)}
+.btn-danger.btn-sm:hover{background:var(--danger-l)}
+#cancelOrderBtn.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+#cancelOrderBtn.btn-danger:hover{background:#963530}
 /* panels that were bright blue */
 [style*="var(--info-l)"][style*="var(--accent-mid)"]{background:var(--surface) !important;border-color:var(--border) !important;color:var(--muted)}
 [style*="var(--info-l)"][style*="var(--accent-mid)"] b{color:var(--text)}
@@ -605,7 +619,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.7.2';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -1258,7 +1272,7 @@ syncShipmentsToOrders();
 // ══════════════════════════════════════════════════════════════
 function fmtTS(iso){
   const d=new Date(iso);
-  return`${String(d.getDate()).padStart(2,'0')}-${MONTHS[d.getMonth()]}-${String(d.getFullYear()).slice(-2)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return`${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function auditLog(type,refId,refNo,action,changes){
   if(!S.user)return;
@@ -1356,21 +1370,21 @@ function auditPanelHTML(type,refId){
       <span class="audit-toggle-title">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         Audit History
-        <span class="badge b-gray" style="font-size:10px">${entries.length}</span>
+        <span class="badge b-gray" style="font-size:11px">${entries.length}</span>
       </span>
       <svg class="audit-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
     </div>
     <div class="audit-body">
       ${entries.length===0?`<p style="font-size:12px;color:var(--light);padding:8px 0">No history yet — changes will appear here after saving.</p>`:`
       <div style="display:grid;grid-template-columns:140px 160px 110px 1fr;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">When</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">Who</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">Action</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">Changes</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">When</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">Who</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">Action</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--light)">Changes</div>
       </div>
       ${entries.map(e=>`<div class="audit-entry">
         <div class="audit-ts">${fmtTS(e.timestamp)}</div>
-        <div><div class="audit-user">${esc(e.userName)}</div><div style="font-size:10px;color:var(--light)">${esc(e.userRole)}</div></div>
+        <div><div class="audit-user">${esc(e.userName)}</div><div style="font-size:11px;color:var(--light)">${esc(e.userRole)}</div></div>
         <div><span class="audit-action ${actionClass[e.action]||'updated'}">${esc(e.action)}</span></div>
         <div class="audit-changes">
           ${e.changes.length===0?`<span style="color:var(--light);font-size:11px">No field changes</span>`:
@@ -1525,7 +1539,7 @@ function appHTML(){
       </div>
       <div class="topbar-right">
         ${overdueCount>0?`<span class="badge b-red" style="font-size:11px">⚠ ${overdueCount} overdue</span>`:''}
-        <span title="App version" style="font-size:10px;color:var(--light);margin-right:8px">v${APP_VERSION}</span>
+        <span title="App version" style="font-size:11px;color:var(--light);margin-right:8px">v${APP_VERSION}</span>
         ${SP_ENABLED?`<span title="SharePoint connected" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--success);background:var(--success-l);border:1px solid var(--success-mid);border-radius:10px;padding:2px 8px"><span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block"></span>SharePoint</span>`:`<span title="SharePoint not configured" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--warn);background:var(--warn-l);border:1px solid var(--warn-mid);border-radius:10px;padding:2px 8px"><span style="width:6px;height:6px;background:var(--warn);border-radius:50%;display:inline-block"></span>Local only</span>`}
         <span class="badge b-dark" style="font-size:11px">${roleLabel(u.role)}</span>
       </div>
@@ -1664,10 +1678,10 @@ function dashHTML(){
   const dfOpen=S.dashFilterOpen===undefined?hasFilters:S.dashFilterOpen;
   const filterBar=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;box-shadow:var(--shadow-sm)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${dfOpen?'12px':'0'}">
-      <span style="font-family:'Sora',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer" id="dashFilterToggle" onclick="S.dashFilterOpen=!${dfOpen};render()">
+      <span style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer" id="dashFilterToggle" onclick="S.dashFilterOpen=!${dfOpen};render()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
         Dashboard Filters
-        ${hasFilters?`<span class="badge b-blue" style="font-size:10px">${Object.values(df).filter(v=>Array.isArray(v)&&v.length>0).length} active</span>`:''}
+        ${hasFilters?`<span class="badge b-blue" style="font-size:11px">${Object.values(df).filter(v=>Array.isArray(v)&&v.length>0).length} active</span>`:''}
       </span>
       <div style="display:flex;gap:8px">
         ${hasFilters?`<button class="btn btn-secondary btn-sm" id="dashClearFilters" style="color:var(--danger)">&#x2715; Clear</button>`:''}
@@ -1676,13 +1690,13 @@ function dashHTML(){
       </div>
     </div>
     <div style="display:${dfOpen?'grid':'none'};grid-template-columns:repeat(6,1fr);gap:10px">
-      <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Customer</div>${msHTML('dfCust',custOpts,df.customers||[],'Customers')}</div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Part No</div>${msHTML('dfPart',partOpts,df.partNos||[],'Parts')}</div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Date From</div><input type="date" id="dfDateFrom" value="${esc(df.dateFrom||'')}" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none;background:var(--surface);width:100%"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Date To</div><input type="date" id="dfDateTo" value="${esc(df.dateTo||'')}" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none;background:var(--surface);width:100%"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">PO Status</div>${msHTML('dfPOStat',['Open','Closed'],df.poStatuses||[],'Statuses')}</div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Shipment Type</div>${msHTML('dfShipType',shipTypeOpts,df.shipTypes||[],'Types')}</div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Location</div>${msHTML('dfLoc',LOCATIONS,df.locations||[],'Locations')}</div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Customer</div>${msHTML('dfCust',custOpts,df.customers||[],'Customers')}</div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Part No</div>${msHTML('dfPart',partOpts,df.partNos||[],'Parts')}</div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Date From</div><input type="date" id="dfDateFrom" value="${esc(df.dateFrom||'')}" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none;background:var(--surface);width:100%"></div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Date To</div><input type="date" id="dfDateTo" value="${esc(df.dateTo||'')}" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none;background:var(--surface);width:100%"></div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">PO Status</div>${msHTML('dfPOStat',['Open','Closed'],df.poStatuses||[],'Statuses')}</div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Shipment Type</div>${msHTML('dfShipType',shipTypeOpts,df.shipTypes||[],'Types')}</div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Location</div>${msHTML('dfLoc',LOCATIONS,df.locations||[],'Locations')}</div>
     </div>
     ${hasFilters?`<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border-soft)">
       ${(df.customers||[]).map(v=>`<span class="filter-chip">${esc(v)}<button onclick="S.dashFilters.customers=S.dashFilters.customers.filter(x=>x!==\'${esc(v)}\');render()">&#xd7;</button></span>`).join('')}
@@ -1744,9 +1758,9 @@ function dashHTML(){
         ${overdueLines.length>0?`<span class="badge b-red" style="margin-top:4px">Action needed</span>`:`<span class="badge b-green" style="margin-top:4px">All on track</span>`}
       </div>
       <div style="display:flex;gap:16px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft)">
-        <div><div style="font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.4px;font-weight:600">Avg Late</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:${overdueLines.length>0?'var(--danger)':'var(--muted)'}">${overdueLines.length?avgDaysLate+'d':'&#x2014;'}</div></div>
-        <div><div style="font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.4px;font-weight:600">Open Qty</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text)">${overdueLines.length?fmtQ(overdueQty):'&#x2014;'}</div></div>
-        <div><div style="font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.4px;font-weight:600">Lines</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text)">${overdueLines.length}</div></div>
+        <div><div style="font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.4px;font-weight:600">Avg Late</div><div style="font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:${overdueLines.length>0?'var(--danger)':'var(--muted)'}">${overdueLines.length?avgDaysLate+'d':'&#x2014;'}</div></div>
+        <div><div style="font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.4px;font-weight:600">Open Qty</div><div style="font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:var(--text)">${overdueLines.length?fmtQ(overdueQty):'&#x2014;'}</div></div>
+        <div><div style="font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.4px;font-weight:600">Lines</div><div style="font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:var(--text)">${overdueLines.length}</div></div>
       </div>
     </div>
     <div class="stat-card" style="border-top:3px solid ${onTimeRate!==null&&onTimeRate>=80?'var(--success)':onTimeRate!==null&&onTimeRate>=60?'var(--warn)':'var(--border)'}">
@@ -1768,7 +1782,7 @@ function dashHTML(){
   const orderChart=canFin()?`<div class="chart-card" style="margin-bottom:14px">
     <div class="chart-title">Monthly Order Activity <span class="chart-subtitle">12 months &middot; US &amp; India PO value &middot; dashed = current month</span></div>
     <div style="padding:8px 0 4px">${svgBars(moArr,'poUS','poIN','#1F4E8C','#3E8E8A',fmt,fmtI)}</div>
-    <div style="display:flex;gap:16px;font-size:10px;color:var(--muted);margin-top:4px">
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--muted);margin-top:4px">
       <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1F4E8C;border-radius:2px;display:inline-block"></span>US PO Value ($)</span>
       <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#3E8E8A;border-radius:2px;display:inline-block"></span>India PO Value ($)</span>
     </div>
@@ -1777,7 +1791,7 @@ function dashHTML(){
   const shipChart=canFin()?`<div class="chart-card" style="margin-bottom:14px">
     <div class="chart-title">Monthly Shipment Activity <span class="chart-subtitle">12 months &middot; US &amp; India sales value &middot; dashed = current month</span></div>
     <div style="padding:8px 0 4px">${svgBars(moArr,'shipUS','shipIN','#6B8F5E','#6A5FA8',fmt,fmtI)}</div>
-    <div style="display:flex;gap:16px;font-size:10px;color:var(--muted);margin-top:4px">
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--muted);margin-top:4px">
       <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#6B8F5E;border-radius:2px;display:inline-block"></span>US Sales ($)</span>
       <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#6A5FA8;border-radius:2px;display:inline-block"></span>India Sales ($)</span>
     </div>
@@ -1793,7 +1807,7 @@ function dashHTML(){
       return`<div style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
           <span style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${esc(name)}</span>
-          <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">${delPct}% &middot; ${total} lines</span>
+          <span style="font-size:11px;color:var(--muted);font-family:Inter,sans-serif">${delPct}% &middot; ${total} lines</span>
         </div>
         <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;display:flex">
           <div style="width:${delPct}%;background:var(--success)"></div>
@@ -1801,7 +1815,7 @@ function dashHTML(){
         </div>
       </div>`;
     }).join('')}
-    <div style="display:flex;gap:12px;font-size:10px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft)">
+    <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft)">
       <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--success);border-radius:2px;display:inline-block"></span>Delivered</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--warn);border-radius:2px;display:inline-block;opacity:.7"></span>In Transit</span>
     </div>
@@ -1820,11 +1834,11 @@ function dashHTML(){
       <thead><tr><th>Customer</th><th>PO No</th><th>Part</th><th>Must Ship</th><th style="text-align:center">Left</th><th style="text-align:right">Qty</th></tr></thead>
       <tbody>${upcomingLines.slice(0,8).map(({order:o,line:l,calc:c,daysLeft})=>`<tr class="clickable" onclick="openOrderView(${o.id})">
         <td style="font-size:11px;font-weight:500">${esc(o.customerName)}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(o.customerPONo)}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(l.partNo)}</td>
+        <td style="font-family:Inter,sans-serif;font-size:11px">${esc(o.customerPONo)}</td>
+        <td style="font-family:Inter,sans-serif;font-size:11px">${esc(l.partNo)}</td>
         <td style="font-size:11px">${fmtDate(shipDate)}</td>
-        <td style="text-align:center"><span class="badge ${daysLeft<=3?'b-red':'b-yellow'}" style="font-size:10px">${daysLeft}d</span></td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;text-align:right">${c.poOpenQty}</td>
+        <td style="text-align:center"><span class="badge ${daysLeft<=3?'b-red':'b-yellow'}" style="font-size:11px">${daysLeft}d</span></td>
+        <td style="font-family:Inter,sans-serif;font-size:11px;text-align:right">${c.poOpenQty}</td>
       </tr>`).join('')}</tbody>
     </table>`}
   </div>`;
@@ -1841,11 +1855,11 @@ function dashHTML(){
       <thead><tr><th>Customer</th><th>PO No</th><th>Part</th><th>Must Ship</th><th style="text-align:center">Late</th><th style="text-align:right">Qty</th></tr></thead>
       <tbody>${overdueLines.slice(0,8).map(({order:o,line:l,calc:c,daysOver})=>`<tr class="clickable" onclick="openOrderView(${o.id})">
         <td style="font-size:11px;font-weight:500">${esc(o.customerName)}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(o.customerPONo)}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(l.partNo)}</td>
+        <td style="font-family:Inter,sans-serif;font-size:11px">${esc(o.customerPONo)}</td>
+        <td style="font-family:Inter,sans-serif;font-size:11px">${esc(l.partNo)}</td>
         <td style="font-size:11px">${fmtDate(c.mustShipDate)}</td>
-        <td style="text-align:center"><span class="badge b-red" style="font-size:10px">+${daysOver}d</span></td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;text-align:right">${c.poOpenQty}</td>
+        <td style="text-align:center"><span class="badge b-red" style="font-size:11px">+${daysOver}d</span></td>
+        <td style="font-family:Inter,sans-serif;font-size:11px;text-align:right">${c.poOpenQty}</td>
       </tr>`).join('')}</tbody>
     </table>
     ${overdueLines.length>8?`<div style="padding:8px 0 0;text-align:center;font-size:11px;color:var(--muted)">${overdueLines.length-8} more &mdash; <span style="color:var(--accent);cursor:pointer" onclick="goOrders({dueWindow:'overdue'})">view all &rarr;</span></div>`:''}`}
@@ -1860,12 +1874,12 @@ function dashHTML(){
         const custs=[...new Set(s.lines.map(l=>l.shippedTo))].join(', ');
         const qty=s.lines.reduce((sm,l)=>sm+(+l.shippedQty||0),0);
         return`<tr>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500">${esc(s.shippingInvoiceNo)}</td>
+          <td style="font-family:Inter,sans-serif;font-size:11px;font-weight:500">${esc(s.shippingInvoiceNo)}</td>
           <td style="font-size:11px;font-weight:500;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(custs)}</td>
-          <td><span class="badge ${s.location==='India'?'b-blue':'b-purple'}" style="font-size:9px;padding:1px 5px">${esc(s.location||'&#x2014;')}</span></td>
+          <td><span class="badge ${s.location==='India'?'b-blue':'b-purple'}" style="font-size:11px;padding:1px 5px">${esc(s.location||'&#x2014;')}</span></td>
           <td style="font-size:11px;white-space:nowrap">${fmtDate(s.dateOfShipping)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;text-align:right">${qty.toLocaleString()}</td>
-          <td style="text-align:center"><span class="badge ${allDel?'b-green':'b-yellow'}" style="font-size:9px;padding:1px 5px">${allDel?'Delivered':'In Transit'}</span></td>
+          <td style="font-family:Inter,sans-serif;font-size:11px;text-align:right">${qty.toLocaleString()}</td>
+          <td style="text-align:center"><span class="badge ${allDel?'b-green':'b-yellow'}" style="font-size:11px;padding:1px 5px">${allDel?'Delivered':'In Transit'}</span></td>
         </tr>`;
       }).join(''):`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No shipments</td></tr>`}</tbody>
     </table>
@@ -2004,16 +2018,16 @@ function ordersHTML(){
         return`<tr style="${rowStyle}">
           <td style="font-size:12px;white-space:nowrap">${li===0?(fmtDate(o.orderDate)||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
           <td style="font-size:12px;font-weight:500">${li===0?`<div style="display:flex;align-items:center;gap:6px"><span class="risk-dot ${riskClass}"></span>${esc(o.customerName||'—')}</div>`:'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500">${li===0?esc(o.customerPONo||'—'):'<span style="color:var(--light);font-size:11px">↳ same PO</span>'}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${esc(l.partNo||'—')}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right">${l.poQty||'—'}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;color:var(--success)">${l.delivered||0}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;color:var(--warn)">${l.inTransit||0}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;font-weight:500;color:${c.poOpenQty>0?'var(--accent)':'var(--muted)'}">${c.poOpenQty}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;font-weight:500">${li===0?esc(o.customerPONo||'—'):'<span style="color:var(--light);font-size:11px">↳ same PO</span>'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px">${esc(l.partNo||'—')}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right">${l.poQty||'—'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right;color:var(--success)">${l.delivered||0}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right;color:var(--warn)">${l.inTransit||0}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right;font-weight:500;color:${c.poOpenQty>0?'var(--accent)':'var(--muted)'}">${c.poOpenQty}</td>
           <td style="min-width:100px"><div class="prog-bar-wrap"><div class="prog-bar-track"><div class="prog-bar-fill ${progClass}" style="width:${pct}%"></div></div><span class="prog-pct">${pct}%</span></div></td>
           <td>
             ${li===0?`<span class="badge ${st==='Cancelled'?'b-red':st==='Open'?'b-blue':'b-green'}">${st}</span>`:''}
-            ${(()=>{const lSt=l.lineStatus||'Open';if(lSt==='Cancelled')return`<span class="badge b-cancelled" style="font-size:10px;margin-top:2px;display:inline-block">Line Cancelled</span>`;if(lSt==='Short Closed')return`<span class="badge b-short-closed" style="font-size:10px;margin-top:2px;display:inline-block">Short Closed</span>`;return'';})()}
+            ${(()=>{const lSt=l.lineStatus||'Open';if(lSt==='Cancelled')return`<span class="badge b-cancelled" style="font-size:11px;margin-top:2px;display:inline-block">Line Cancelled</span>`;if(lSt==='Short Closed')return`<span class="badge b-short-closed" style="font-size:11px;margin-top:2px;display:inline-block">Short Closed</span>`;return'';})()}
           </td>
           <td>${li===0?`<div class="action-btns">
             <button class="btn btn-secondary btn-sm" data-action="view" data-id="${o.id}">View</button>
@@ -2061,7 +2075,7 @@ function orderRelinkModalHTML(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <h3 style="font-size:17px;font-weight:600">${title}</h3><span class="badge b-warn">Admin Only</span>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5">Order: <strong style="font-family:'JetBrains Mono',monospace">${esc(order.customerPONo)}</strong> — ${esc(order.customerName)}</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5">Order: <strong style="font-family:Inter,sans-serif">${esc(order.customerPONo)}</strong> — ${esc(order.customerName)}</p>
     ${linesHTML}
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button class="btn btn-secondary" id="orderRelinkCancel">Cancel</button>
@@ -2124,7 +2138,7 @@ function shipRelinkModalHTML(){
           </select>
         </div>
       </div>
-      <div style="margin-top:10px"><div class="rl-label">Order Line No <span style="font-size:10px;color:var(--purple);font-weight:600;background:var(--purple-l);border-radius:4px;padding:1px 5px">KEY — prevents double-counting</span></div>
+      <div style="margin-top:10px"><div class="rl-label">Order Line No <span style="font-size:11px;color:var(--purple);font-weight:600;background:var(--purple-l);border-radius:4px;padding:1px 5px">KEY — prevents double-counting</span></div>
         <select class="rlselect" id="rlOrderLine${i}">
           <option value="">— Select after choosing Part No —</option>
           ${orderLinesForPart.map(ol=>`<option value="${ol.lineNo}"${ol.lineNo===l.orderLineNo?' selected':''}>Line ${ol.lineNo} (PO Qty: ${ol.poQty})</option>`).join('')}
@@ -2135,7 +2149,7 @@ function shipRelinkModalHTML(){
   return`<div class="modal-overlay"><div class="relink-modal-box">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div><h3 style="font-size:17px;font-weight:600">Re-link Shipment</h3>
-        <p style="font-size:12px;color:var(--muted);margin-top:4px">Shipment: <strong style="font-family:'JetBrains Mono',monospace">${esc(sh.shippingInvoiceNo)}</strong></p>
+        <p style="font-size:12px;color:var(--muted);margin-top:4px">Shipment: <strong style="font-family:Inter,sans-serif">${esc(sh.shippingInvoiceNo)}</strong></p>
       </div><span class="badge b-purple">Admin Only</span>
     </div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Use dropdowns only. Setting the <strong>Order Line No</strong> is important — it prevents the same shipment being counted against multiple order lines with the same part number.</p>
@@ -2227,7 +2241,7 @@ function shipmentsHTML(){
   </div>`:'';
 
   return`${alertStrip}
-  ${historyPanelHTML()}
+  ${historyPanelHTML(false)}
   <div class="toolbar">
     <div class="toolbar-left">
       <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="shipSearchInput" placeholder="Search by invoice, tracking, customer..." value="${esc(S.shipSearch)}"></div>
@@ -2240,7 +2254,7 @@ function shipmentsHTML(){
     <div style="display:flex;gap:8px">
       <button class="btn btn-success btn-sm" id="shipExportBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export</button>
       ${canEdit()&&AI_IMPORT?`<button class="btn btn-secondary btn-sm" id="importShipDocBtn" style="border-color:var(--purple);color:var(--purple)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Import Doc</button>`:''}
-      ${canEdit()?`<button class="btn btn-purple btn-sm" id="newShipmentBtn">+ New Shipment</button>`:''}
+      ${canEdit()?`<button class="btn btn-primary btn-sm" id="newShipmentBtn">+ New Shipment</button>`:''}
     </div>
   </div>
 
@@ -2277,12 +2291,12 @@ function shipmentsHTML(){
         const rowTint=l.deliveryStatus==='Delivered'?'rgba(22,163,74,.03)':l.deliveryStatus==='In Transit'?'rgba(217,119,6,.03)':'';
         return`<tr style="${rowTint?`background:${rowTint}`:''}">
           <td style="font-size:12px;white-space:nowrap">${li===0?(fmtDate(s.dateOfShipping)||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500">${li===0?esc(s.shippingInvoiceNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500">${esc(l.customerPONo||'—')}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${esc(l.partNo||'—')}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right">${l.shippedQty||'—'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:11px;font-weight:500">${li===0?esc(s.shippingInvoiceNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;font-weight:500">${esc(l.customerPONo||'—')}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px">${esc(l.partNo||'—')}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right">${l.shippedQty||'—'}</td>
           <td style="font-size:12px">${li===0?esc(s.logistics||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${li===0?esc(s.trackingNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:11px;color:var(--muted)">${li===0?esc(s.trackingNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
           <td><span class="badge ${delBadge}">${esc(l.deliveryStatus||'—')}</span></td>
           <td style="font-size:12px">${fmtDate(l.deliveryDate)||'—'}</td>
           <td>${li===0?`<div class="action-btns">
@@ -2372,9 +2386,9 @@ function orderFormHTML(){
             return`<div class="fg"><label>Short Close Qty</label><input readonly class="computed" value="${esc(String(l.shortCloseQty||0))}" style="border-color:var(--warn)"></div>`;
           }
           const maxSC=Math.max(0,(+l.poQty||0)-(+l.delivered||0));
-          return`<div class="fg"><label style="display:flex;align-items:center;gap:6px">Short Close Qty <span style="font-size:9px;background:var(--warn-l);color:var(--warn);padding:1px 5px;border-radius:4px;font-weight:700">max ${maxSC}</span></label>
+          return`<div class="fg"><label style="display:flex;align-items:center;gap:6px">Short Close Qty <span style="font-size:11px;background:var(--warn-l);color:var(--warn);padding:1px 5px;border-radius:4px;font-weight:600">max ${maxSC}</span></label>
             <input type="number" min="0" max="${maxSC}" value="${esc(String(l.shortCloseQty||0))}" data-f="lines.${i}.shortCloseQty" style="border-color:${(+l.shortCloseQty>0)?'var(--warn)':'var(--border)'}">
-            ${+l.shortCloseQty>0?(()=>{const scq=+l.shortCloseQty||0;const pq=+l.poQty||0;const del=+l.delivered||0;const effQ=Math.max(0,pq-scq);const openAfter=Math.max(0,effQ-del);return`<div style="font-size:10px;color:var(--warn);margin-top:3px">On save: Effective Qty = ${effQ} · Open Qty → ${openAfter} pcs</div>`;})():''}
+            ${+l.shortCloseQty>0?(()=>{const scq=+l.shortCloseQty||0;const pq=+l.poQty||0;const del=+l.delivered||0;const effQ=Math.max(0,pq-scq);const openAfter=Math.max(0,effQ-del);return`<div style="font-size:11px;color:var(--warn);margin-top:3px">On save: Effective Qty = ${effQ} · Open Qty → ${openAfter} pcs</div>`;})():''}
           </div>`;
         })()}
       </div>
@@ -2408,7 +2422,7 @@ function orderFormHTML(){
           ${canFin()?fld('US Ext Sales (auto)',c.usExt.toFixed(2),'',{computed:true,ro:true}):`<div class="fg"><label>US Ext Sales</label><div class="no-access">No Access</div></div>`}
         </div>
       </div>
-      ${lineShips.length?`<div class="shipment-link-panel"><div class="shipment-link-title">Linked Shipments</div>${lineShips.map(sl=>`<div class="shipment-link-row"><span style="font-family:'JetBrains Mono',monospace">${esc(sl.invoiceNo)}</span><span>${fmtDate(sl.dateOfShipping)}</span><span>Qty: <strong>${sl.shippedQty}</strong></span>${sl.orderLineNo!=null?`<span class="badge b-purple">Line ${sl.orderLineNo}</span>`:''}<span><span class="badge ${sl.deliveryStatus==='Delivered'?'b-green':'b-yellow'}">${sl.deliveryStatus}</span></span></div>`).join('')}</div>`:''}
+      ${lineShips.length?`<div class="shipment-link-panel"><div class="shipment-link-title">Linked Shipments</div>${lineShips.map(sl=>`<div class="shipment-link-row"><span style="font-family:Inter,sans-serif">${esc(sl.invoiceNo)}</span><span>${fmtDate(sl.dateOfShipping)}</span><span>Qty: <strong>${sl.shippedQty}</strong></span>${sl.orderLineNo!=null?`<span class="badge b-purple">Line ${sl.orderLineNo}</span>`:''}<span><span class="badge ${sl.deliveryStatus==='Delivered'?'b-green':'b-yellow'}">${sl.deliveryStatus}</span></span></div>`).join('')}</div>`:''}
     </div>`;
   }).join('');
 
@@ -2517,7 +2531,7 @@ function orderFormHTML(){
             <div class="review-line-title">
               Line Item ${i+1}
               <span class="badge ${lineSt==='Cancelled'?'b-cancelled':lineSt==='Short Closed'?'b-short-closed':c.poStatus==='Open'?'b-blue':'b-green'}">${lineSt==='Cancelled'?'Cancelled':lineSt==='Short Closed'?'Short Closed':c.poStatus}</span>
-              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${esc(l.partNo||'—')}</span>
+              <span style="font-family:Inter,sans-serif;font-size:11px;color:var(--muted)">${esc(l.partNo||'—')}</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
               <div class="review-field-row"><div class="review-field-label">PO Qty</div><div class="review-field-val">${l.poQty||0}</div></div>
@@ -2562,7 +2576,7 @@ function orderFormHTML(){
   // ── VIEW MODE ACTION BUTTONS ──
   const viewActions=isView?`<div class="form-actions">
     <button class="btn btn-secondary btn-sm" id="backBtn">Back</button>
-    ${isView&&o.customerPONo?`<button class="btn btn-purple btn-sm" id="newShipFromOrderBtn">+ New Shipment for this PO</button>`:''}
+    ${isView&&o.customerPONo?`<button class="btn btn-primary btn-sm" id="newShipFromOrderBtn">+ New Shipment for this PO</button>`:''}
     ${isAdmin()&&isView?`<button class="btn btn-warn btn-sm" id="relinkAllOrderLinesBtn" data-id="${o.id}">Re-link All Lines</button>`:''}
     ${isAdmin()&&isView&&o.orderStatus!=='Cancelled'?`<button class="btn btn-danger btn-sm" id="cancelOrderBtn" data-id="${o.id}">Cancel PO</button>`:''}
     ${isAdmin()&&isView&&o.orderStatus==='Cancelled'?`<span class="badge b-red" style="font-size:12px;padding:5px 12px">CANCELLED</span><button class="btn btn-secondary btn-sm" id="reopenOrderBtn" data-id="${o.id}">Reopen PO</button>`:''}
@@ -2648,7 +2662,7 @@ function shipmentFormHTML(){
     const matchingOrderLines=linkedOrder?linkedOrder.lines.filter(ln=>ln.partNo===l.partNo):[];
     const orderLineNoField=ro||staffPartial
       ?(l.orderLineNo!=null?`<div class="fg"><label>Order Line No</label><input readonly value="Line ${l.orderLineNo} (${esc(l.partNo)})"></div>`:'')
-      :`<div class="fg"><label>Order Line No <span style="font-size:10px;color:var(--purple);font-weight:600;background:var(--purple-l);border-radius:4px;padding:1px 5px">KEY</span></label><select data-sf="slines.${i}.orderLineNo" class="part-line-sel" data-li="${i}" id="shipLineNoSel${i}"><option value="">— Select after Part No —</option>${matchingOrderLines.map(ol=>`<option value="${ol.lineNo}"${ol.lineNo===l.orderLineNo?' selected':''}>Line ${ol.lineNo} (PO Qty: ${ol.poQty})</option>`).join('')}</select></div>`;
+      :`<div class="fg"><label>Order Line No <span style="font-size:11px;color:var(--purple);font-weight:600;background:var(--purple-l);border-radius:4px;padding:1px 5px">KEY</span></label><select data-sf="slines.${i}.orderLineNo" class="part-line-sel" data-li="${i}" id="shipLineNoSel${i}"><option value="">— Select after Part No —</option>${matchingOrderLines.map(ol=>`<option value="${ol.lineNo}"${ol.lineNo===l.orderLineNo?' selected':''}>Line ${ol.lineNo} (PO Qty: ${ol.poQty})</option>`).join('')}</select></div>`;
     return`<div class="line-item" data-sli="${i}">
       <div class="li-header">
         <span class="li-no">Line Item ${i+1}</span>
@@ -2778,7 +2792,7 @@ function shipmentFormHTML(){
             <div class="review-line-title">
               Line Item ${i+1}
               <span class="badge ${statusBadge}">${esc(l.deliveryStatus||'—')}</span>
-              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${esc(l.partNo||'—')}</span>
+              <span style="font-family:Inter,sans-serif;font-size:11px;color:var(--muted)">${esc(l.partNo||'—')}</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
               <div class="review-field-row"><div class="review-field-label">Customer PO No</div><div class="review-field-val">${esc(l.customerPONo||'—')}</div></div>
@@ -2935,12 +2949,12 @@ function usersHTML(){
         <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
         <tbody>
           ${USERS.map(u=>`<tr style="${u.id===S.user?.id?'background:var(--accent-l)':''}">
-            <td style="color:var(--muted);font-size:11px;font-family:'JetBrains Mono',monospace">${String(u.id).padStart(2,'0')}</td>
+            <td style="color:var(--muted);font-size:11px;font-family:Inter,sans-serif">${String(u.id).padStart(2,'0')}</td>
             <td style="font-weight:500">
               ${esc(u.name)}
-              ${u.id===S.user?.id?'<span class="badge b-blue" style="margin-left:6px;font-size:10px">You</span>':''}
+              ${u.id===S.user?.id?'<span class="badge b-blue" style="margin-left:6px;font-size:11px">You</span>':''}
             </td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">${esc(u.email)}</td>
+            <td style="font-family:Inter,sans-serif;font-size:12px;color:var(--muted)">${esc(u.email)}</td>
             <td><span class="badge ${roleColors[u.role]||'b-gray'}">${roleFullName[u.role]||u.role}</span></td>
             <td><div class="action-btns">
               <button class="btn btn-secondary btn-sm" data-action="editUser" data-id="${u.id}">Edit</button>
@@ -2973,13 +2987,13 @@ function usersHTML(){
           <thead><tr><th>When</th><th>Who</th><th>Role</th><th>Type</th><th>Reference</th><th>Action</th><th>Changes</th></tr></thead>
           <tbody>
             ${S.auditLog.slice(0,1000).map(e=>`<tr>
-              <td style="font-family:'JetBrains Mono',monospace;font-size:10px;white-space:nowrap">${fmtTS(e.timestamp)}</td>
+              <td style="font-family:Inter,sans-serif;font-size:11px;white-space:nowrap">${fmtTS(e.timestamp)}</td>
               <td style="font-size:11px;font-weight:500">${esc(e.userName)}</td>
-              <td><span class="badge b-gray" style="font-size:10px">${esc(e.userRole)}</span></td>
-              <td><span class="badge ${e.type==='order'?'b-blue':'b-purple'}" style="font-size:10px">${esc(e.type)}</span></td>
-              <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${esc(e.refNo||String(e.refId||''))}</td>
+              <td><span class="badge b-gray" style="font-size:11px">${esc(e.userRole)}</span></td>
+              <td><span class="badge ${e.type==='order'?'b-blue':'b-purple'}" style="font-size:11px">${esc(e.type)}</span></td>
+              <td style="font-family:Inter,sans-serif;font-size:11px">${esc(e.refNo||String(e.refId||''))}</td>
               <td><span class="audit-action ${e.action==='Created'?'created':e.action==='Updated'?'updated':e.action==='Cancelled'?'cancelled':e.action==='Reopened'?'reopened':'short-closed'}">${esc(e.action)}</span></td>
-              <td style="font-size:11px;color:var(--muted)">${e.changes?.length?e.changes.slice(0,3).map(c=>`<span style="display:block">${esc(c.field)}: <span style="color:var(--danger);font-family:'JetBrains Mono',monospace;font-size:10px">${esc(String(c.from))}</span> → <span style="color:var(--success);font-family:'JetBrains Mono',monospace;font-size:10px">${esc(String(c.to))}</span></span>`).join('')+(e.changes.length>3?`<span style="color:var(--light);font-size:10px">+${e.changes.length-3} more</span>`:''):'<span style="color:var(--light)">—</span>'}</td>
+              <td style="font-size:11px;color:var(--muted)">${e.changes?.length?e.changes.slice(0,3).map(c=>`<span style="display:block">${esc(c.field)}: <span style="color:var(--danger);font-family:Inter,sans-serif;font-size:11px">${esc(String(c.from))}</span> → <span style="color:var(--success);font-family:Inter,sans-serif;font-size:11px">${esc(String(c.to))}</span></span>`).join('')+(e.changes.length>3?`<span style="color:var(--light);font-size:11px">+${e.changes.length-3} more</span>`:''):'<span style="color:var(--light)">—</span>'}</td>
             </tr>`).join('')}
           </tbody>
         </table>`}
@@ -3005,14 +3019,14 @@ function overShipWarning(sh){
   });
   return w.length?`<br><br><strong style="color:#B91C1C">⚠ Over-shipping:</strong><br>${w.join('<br>')}<br>Save only if this is intended.`:'';
 }
-function historyPanelHTML(){
+function historyPanelHTML(withPart=true){
   if(!USE_COLUMNS||!S.window||S.window.full||!S.window.from)return'';
   const to=addDaysISO(S.window.from,-1);
-  return`<div style="background:var(--info-l);border:1px solid var(--accent-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span>Showing open orders and everything since <b>${esc(fmtDate(S.window.from))}</b>. Older records are not loaded.</span><label>From <input type="date" id="histFrom" value="${esc(addDaysISO(S.window.from,-365))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><label>To <input type="date" id="histTo" value="${esc(to)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histLoadBtn">Load older history</button><span id="histMsg" style="color:var(--muted)"></span><div style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-top:1px solid var(--accent-mid);padding-top:8px"><b>Find old orders by part number</b><input id="histPart" placeholder="Part number" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"><label>Search back to <input type="date" id="histPartFrom" value="${esc(addDaysISO(S.window.from,-1825))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histPartBtn">Find &amp; load</button><span id="histPartMsg" style="color:var(--muted)"></span></div></div>`;
+  return`<div style="background:var(--info-l);border:1px solid var(--accent-mid);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span>Showing open orders and everything since <b>${esc(fmtDate(S.window.from))}</b>. Older records are not loaded.</span><label>From <input type="date" id="histFrom" value="${esc(addDaysISO(S.window.from,-365))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><label>To <input type="date" id="histTo" value="${esc(to)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histLoadBtn">Load older history</button><span id="histMsg" style="color:var(--muted)"></span>${withPart?`<div style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-top:1px solid var(--accent-mid);padding-top:8px"><b>Find old orders by part number</b><input id="histPart" placeholder="Part number" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"><label>Search back to <input type="date" id="histPartFrom" value="${esc(addDaysISO(S.window.from,-1825))}" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px"></label><button class="btn btn-secondary btn-sm" id="histPartBtn">Find &amp; load</button><span id="histPartMsg" style="color:var(--muted)"></span></div>`:''}</div>`;
 }
 function mastersHTML(){const tab=S.masterTab;return`<div style="display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);width:fit-content;overflow:hidden"><button class="btn${tab==='customers'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none" data-master-tab="customers">Customers (${S.customers.length})</button><button class="btn${tab==='parts'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="parts">Part Numbers (${S.parts.length})</button><button class="btn${tab==='lists'?' btn-primary':' btn-secondary'}" style="border-radius:0;border:none;border-left:1px solid var(--border)" data-master-tab="lists">Dropdown lists</button></div>${tab==='customers'?custMasterHTML():tab==='lists'?listsMasterHTML():partMasterHTML()}`;}
 function custMasterHTML(){return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Add Customer</span></div><div class="master-form"><div style="display:grid;grid-template-columns:1.5fr 1fr 1.2fr auto;gap:8px;align-items:flex-end"><div class="fg"><label>Name *</label><input id="newCustName" placeholder="Acme Corp" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Contact</label><input id="newCustContact" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Email</label><input id="newCustEmail" type="email" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><button class="btn btn-primary btn-sm" id="addCustBtn" style="height:36px">+ Add</button></div><div id="custAddErr" style="display:none;color:var(--danger);font-size:12px;margin-top:6px"></div></div></div><div class="master-card"><div class="master-card-header"><span class="master-card-title">All Customers</span><span class="badge b-gray">${S.customers.length}</span></div><div class="master-list">${S.customers.map(c=>{const isEd=S.masterCustEdit===c.id;const pc=S.parts.filter(p=>p.custId===c.id).length;return`<div class="master-row">${isEd?`<div class="inline-edit-row"><input class="edit-input" id="ecn${c.id}" value="${esc(c.name)}" style="flex:1.5"><input class="edit-input" id="ecc${c.id}" value="${esc(c.contact)}" style="flex:1"><input class="edit-input" id="ece${c.id}" value="${esc(c.email)}" type="email" style="flex:1.2"><button class="btn btn-success btn-sm" data-action="saveCust" data-id="${c.id}">Save</button><button class="btn btn-secondary btn-sm" data-action="cancelCustEdit">Cancel</button></div>`:`<div class="master-row-info"><span class="master-row-name">${esc(c.name)}</span><span class="master-row-sub">${esc(c.contact||'-')} - ${pc} part${pc!==1?'s':''}</span></div><div class="master-row-actions"><button class="btn btn-secondary btn-sm" data-action="editCust" data-id="${c.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="deleteCust" data-id="${c.id}">Delete</button></div>`}</div>`;}).join('')||`<div class="empty">No customers.</div>`}</div></div></div>`;}
-function partMasterHTML(){const fid=S.masterFilterCust;const fp=fid?S.parts.filter(p=>p.custId===fid):S.parts;return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Add Part Number</span></div><div class="master-form"><div style="display:grid;grid-template-columns:1.5fr 1fr 2fr auto;gap:8px;align-items:flex-end"><div class="fg"><label>Customer *</label><select id="newPartCust" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none"><option value="">Select...</option>${S.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div><div class="fg"><label>Part No *</label><input id="newPartNo" placeholder="AC-004" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Description</label><input id="newPartDesc" placeholder="Bracket Assembly" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><button class="btn btn-primary btn-sm" id="addPartBtn" style="height:36px">+ Add</button></div><div id="partAddErr" style="display:none;color:var(--danger);font-size:12px;margin-top:6px"></div></div></div><div class="master-card"><div class="master-card-header"><span class="master-card-title">All Part Numbers</span><div style="display:flex;align-items:center;gap:8px"><select id="filterPartCust" style="padding:5px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none"><option value="">All Customers</option>${S.customers.map(c=>`<option value="${c.id}"${c.id===fid?' selected':''}>${esc(c.name)}</option>`).join('')}</select><span class="badge b-gray">${fp.length}</span></div></div><div class="master-list">${fp.map(p=>{const cust=S.customers.find(c=>c.id===p.custId);const isEd=S.masterPartEdit===p.id;return`<div class="master-row">${isEd?`<div class="inline-edit-row"><select class="edit-input" id="epc${p.id}" style="flex:1.5">${S.customers.map(c=>`<option value="${c.id}"${c.id===p.custId?' selected':''}>${esc(c.name)}</option>`).join('')}</select><input class="edit-input" id="epn${p.id}" value="${esc(p.partNo)}" style="flex:1"><input class="edit-input" id="epd${p.id}" value="${esc(p.desc)}" style="flex:1.5"><button class="btn btn-success btn-sm" data-action="savePart" data-id="${p.id}">Save</button><button class="btn btn-secondary btn-sm" data-action="cancelPartEdit">Cancel</button></div>`:`<div class="master-row-info"><span class="master-row-name" style="font-family:'JetBrains Mono',monospace">${esc(p.partNo)}</span><span class="master-row-sub">${esc(cust?.name||'?')} - ${esc(p.desc||'-')}</span></div><div class="master-row-actions"><button class="btn btn-secondary btn-sm" data-action="editPart" data-id="${p.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="deletePart" data-id="${p.id}">Delete</button></div>`}</div>`;}).join('')||`<div class="empty">No parts.</div>`}</div></div></div>`;}
+function partMasterHTML(){const fid=S.masterFilterCust;const fp=fid?S.parts.filter(p=>p.custId===fid):S.parts;return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Add Part Number</span></div><div class="master-form"><div style="display:grid;grid-template-columns:1.5fr 1fr 2fr auto;gap:8px;align-items:flex-end"><div class="fg"><label>Customer *</label><select id="newPartCust" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none"><option value="">Select...</option>${S.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div><div class="fg"><label>Part No *</label><input id="newPartNo" placeholder="AC-004" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><div class="fg"><label>Description</label><input id="newPartDesc" placeholder="Bracket Assembly" style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;width:100%"></div><button class="btn btn-primary btn-sm" id="addPartBtn" style="height:36px">+ Add</button></div><div id="partAddErr" style="display:none;color:var(--danger);font-size:12px;margin-top:6px"></div></div></div><div class="master-card"><div class="master-card-header"><span class="master-card-title">All Part Numbers</span><div style="display:flex;align-items:center;gap:8px"><select id="filterPartCust" style="padding:5px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:12px;outline:none"><option value="">All Customers</option>${S.customers.map(c=>`<option value="${c.id}"${c.id===fid?' selected':''}>${esc(c.name)}</option>`).join('')}</select><span class="badge b-gray">${fp.length}</span></div></div><div class="master-list">${fp.map(p=>{const cust=S.customers.find(c=>c.id===p.custId);const isEd=S.masterPartEdit===p.id;return`<div class="master-row">${isEd?`<div class="inline-edit-row"><select class="edit-input" id="epc${p.id}" style="flex:1.5">${S.customers.map(c=>`<option value="${c.id}"${c.id===p.custId?' selected':''}>${esc(c.name)}</option>`).join('')}</select><input class="edit-input" id="epn${p.id}" value="${esc(p.partNo)}" style="flex:1"><input class="edit-input" id="epd${p.id}" value="${esc(p.desc)}" style="flex:1.5"><button class="btn btn-success btn-sm" data-action="savePart" data-id="${p.id}">Save</button><button class="btn btn-secondary btn-sm" data-action="cancelPartEdit">Cancel</button></div>`:`<div class="master-row-info"><span class="master-row-name" style="font-family:Inter,sans-serif">${esc(p.partNo)}</span><span class="master-row-sub">${esc(cust?.name||'?')} - ${esc(p.desc||'-')}</span></div><div class="master-row-actions"><button class="btn btn-secondary btn-sm" data-action="editPart" data-id="${p.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="deletePart" data-id="${p.id}">Delete</button></div>`}</div>`;}).join('')||`<div class="empty">No parts.</div>`}</div></div></div>`;}
 function modalHTML(){const m=S.modal,type=m.type||'warn';return`<div class="modal-overlay"><div class="modal"><div class="modal-icon ${type}"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><h3>${m.title}</h3><p>${m.message}</p><div class="modal-actions"><button class="btn btn-secondary" id="modalCancel">Cancel</button><button class="btn ${type==='danger'?'btn-danger':'btn-success'}" id="modalConfirm">${m.confirmLabel||'Confirm'}</button></div></div></div>`;}
 function bindModal(){document.getElementById('modalCancel').onclick=()=>{S.modal=null;render();};document.getElementById('modalConfirm').onclick=()=>{if(S.modal.onConfirm)S.modal.onConfirm();S.modal=null;render();};}
 function collectOrderForm(){const o=cloneObj(S.editing||{lines:[],consignment:false});document.querySelectorAll('[data-f]').forEach(el=>{const f=el.dataset.f;if(!f)return;let val=el.type==='checkbox'?el.checked:el.tagName==='TEXTAREA'?el.value:el.value;if(f.startsWith('lines.')){const pts=f.split('.');const idx=parseInt(pts[1]);const sub=pts[2];while(o.lines.length<=idx)o.lines.push(emptyLine(o.lines.length+1));const numF=['lineNo','poQty','delivered','inTransit','usRate','indiaRate','inTransitDays','shortCloseQty'];o.lines[idx][sub]=numF.includes(sub)?parseFloat(val)||0:val;}else o[f]=val;});return o;}
@@ -3360,7 +3374,7 @@ function importModalHTML(){
       </div>
       <div class="review-section">
         <div class="review-lines-header">
-          <div class="review-section-title" style="margin-bottom:0">📦 Line Items <span class="badge b-gray" style="font-size:10px">${(d.lines||[]).length} extracted</span></div>
+          <div class="review-section-title" style="margin-bottom:0">📦 Line Items <span class="badge b-gray" style="font-size:11px">${(d.lines||[]).length} extracted</span></div>
         </div>
         ${linesHTML||'<p style="font-size:12px;color:var(--muted);margin-top:8px">No line items extracted. You can add them manually after applying.</p>'}
       </div>
@@ -3525,7 +3539,7 @@ function shipImportModalHTML(){
       </div>
       <div class="review-section">
         <div class="review-lines-header">
-          <div class="review-section-title" style="margin-bottom:0">📦 Line Items <span class="badge b-gray" style="font-size:10px">${(d.lines||[]).length} extracted</span></div>
+          <div class="review-section-title" style="margin-bottom:0">📦 Line Items <span class="badge b-gray" style="font-size:11px">${(d.lines||[]).length} extracted</span></div>
         </div>
         ${linesHTML||'<p style="font-size:12px;color:var(--muted);margin-top:8px">No line items extracted. You can add them manually after applying.</p>'}
       </div>
