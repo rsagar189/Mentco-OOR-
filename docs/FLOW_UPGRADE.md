@@ -39,14 +39,13 @@ On the `PO-Manager` site, add these columns. **Names must be exact (no spaces).*
 | POM_Orders | `Customer` | Single line of text |
 | POM_Orders | `OrderDate` | Date and time → **Date only** |
 | POM_Orders | `Status` | Single line of text |
-| POM_Orders | `PartNos` | Single line of text (holds the part numbers of the order, used by "Find old orders by part number") |
 | POM_Shipments | `ShipDate` | Date and time → **Date only** |
 | POM_Shipments | `Status` | Single line of text |
 | POM_Finance | `OrderDate` | Date and time → **Date only** |
 
 Then **index** the ones used for searching (otherwise SharePoint refuses to search a list over 5,000 rows):
 list → ⚙ **Settings** → **List settings** → **Indexed columns** → **Create a new index** for:
-`POM_Orders`: `Status`, `OrderDate`, `PartNos` · `POM_Shipments`: `ShipDate` · `POM_Finance`: `OrderDate`.
+`POM_Orders`: `Status`, `OrderDate` · `POM_Shipments`: `ShipDate` · `POM_Finance`: `OrderDate`.
 Also create an index on **Title** for `POM_Users` and `POM_Sessions`.
 
 ### 2b. Flow (you)

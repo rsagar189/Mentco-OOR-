@@ -18,7 +18,7 @@ Tick each box. "(me)" items are already done in the app; the rest are yours. Det
 - [x] Failed saves show a red "NOT saved" bar with Retry; closing the tab warns if something is unsaved
 - [x] Two people editing the same record get a warning (needs `FLOW_QUERY`)
 - [x] Reads every page; warns if a list is cut off at 5,000 rows
-- [x] Open orders + last 24 months at sign-in, older history on request, and "Find old orders by part number" (needs `USE_COLUMNS` and the `PartNos` column on POM_Orders)
+- [x] Open orders + last 24 months at sign-in, older history on request (needs `USE_COLUMNS`)
 - [x] Audit log loads 200 at a time
 - [x] Warnings for duplicate PO numbers and over-shipping
 - [x] Dropdown lists (locations, shipment types) editable by Admin (Master Data → Dropdown lists)

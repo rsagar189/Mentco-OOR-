@@ -128,26 +128,18 @@ const download=async(pg,fn)=>{const [d]=await Promise.all([pg.waitForEvent('down
  // saving indicator
  const ind=await A.evaluate(async()=>{const p=persist(()=>new Promise(r=>setTimeout(r,600)),'indicator test');await new Promise(r=>setTimeout(r,100));const a=document.getElementById('saveInd').innerText;await p;const b=document.getElementById('saveInd').innerText;return [a,b];});
  ok('FN-13',ind[0]==='Saving…'&&/Saved/.test(ind[1]),'a "Saving…" then "Saved ✓" indicator appears while saving',JSON.stringify(ind));
- // ---- find OLD orders by part number (outside the 24-month window)
- const old=n=>{const d=new Date();d.setMonth(d.getMonth()-n);d.setDate(10);return d.toISOString().slice(0,10);};
- const mkO=(id,po,part,date)=>({id,customerName:'UAT-RX Co',customerPONo:po,orderDate:date,buyerName:'B',saved:true,_rev:1,lines:[{lineNo:1,partNo:part,poQty:5,delivered:5,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:10,originalDockDate:date,additionalNotes:'',lineStatus:'Open',shortCloseQty:0}]});
- const seed=(po,part,date,id)=>sp('createItem','POM_Orders',{Title:po,POM_Data:JSON.stringify(mkO(id,po,part,date)),Cols:JSON.stringify({Customer:'UAT-RX Co',OrderDate:date+'T00:00:00Z',Status:'Closed',PartNos:';'+part+';'})});
- seed('UAT-RXOLD1','UAT-RX-ZZ9',old(30),880001);seed('UAT-RXOLD2','UAT-RX-ZZ9',old(40),880002);seed('UAT-RXOLD3','UAT-RX-OTHER',old(35),880003);
- const B=await newPage(br);await login(B,ADM,APW);
- const has=(pg,po)=>pg.evaluate(po=>S.orders.some(o=>o.customerPONo===po),po);
- ok('RX-9a',!(await has(B,'UAT-RXOLD1'))&&!(await has(B,'UAT-RXOLD2')),'orders older than 24 months are not loaded at sign-in');
- await nav(B,'orders');ok('RX-9b',await B.isVisible('#histPartBtn'),'"Find old orders by part number" is shown');
- await B.fill('#histPart','rx-zz9');await B.fill('#histPartFrom',old(60));await B.click('#histPartBtn');await H.settle(B,1500);await sleep(800);
- ok('RX-9c',(await has(B,'UAT-RXOLD1'))&&(await has(B,'UAT-RXOLD2')),'part search loads both old orders with that part (not case sensitive)');
- ok('RX-9d',!(await has(B,'UAT-RXOLD3')),'an old order with a different part is not loaded');
- const shown=await B.evaluate(()=>applyOrderFilters(S.orders).map(o=>o.customerPONo).filter(p=>/UAT-RXOLD/.test(p)).sort());
- ok('RX-9e',JSON.stringify(shown)==='["UAT-RXOLD1","UAT-RXOLD2"]','Orders list is filtered to that part',JSON.stringify(shown));
- const pn=await B.evaluate(()=>partNosCol({lines:[{partNo:'A'},{partNo:'B'},{partNo:'A'}]}));ok('RX-9f',pn===';A;B;','PartNos column text is ";A;B;"',pn);
+ // ---- regression: dashboard + sign-in must work when an open line is due within 7 days
+ await A.evaluate(()=>{const o=S.orders.find(x=>x.customerPONo==='UAT-RXC');const d=new Date();d.setDate(d.getDate()+3);o.lines[0].shipDate1=d.toISOString().slice(0,10);o.lines[0].revisedShipDate='';persist(()=>spSaveOrder(o),'upcoming test');});
+ await H.settle(A,1200);await sleep(400);
+ await nav(A,'dashboard');await sleep(500);
+ ok('FN-14',await A.evaluate(()=>S.page==='dashboard'&&/Upcoming Must-Ship/.test(document.body.innerText)&&document.querySelectorAll('.mini-table tr.clickable').length>0)&&(A.errs||[]).length===0,'dashboard shows an order due within 7 days (Upcoming Must-Ship) without errors',(A.errs||[]).join('|'));
+ const B2=await newPage(br);await login(B2,ADM,APW);
+ ok('FN-15',await H.signedIn(B2),'a fresh sign-in still works while an order is due within 7 days');
  // ---- clean-up
  await A.click('#logoutBtn').catch(()=>{});purge();
  const left=[];for(const l of ['POM_Orders','POM_Shipments','POM_Finance','POM_Customers','POM_Parts','POM_Users'])for(const i of (sp('getItems',l)[1].value||[]))if(/UAT-RX/.test(i.POM_Data||'')||/^UAT-RX/.test(i.Title||'')||i.Title===V1)left.push(l+':'+i.Title);
  ok('RX-CLEAN',left.length===0,'test data removed',JSON.stringify(left));
- const errs=[...(A.errs||[]),...(V.errs||[]),...(B.errs||[])];ok('RX-JS',errs.length===0,'no JavaScript errors',errs.slice(0,3).join('|'));
+ const errs=[...(A.errs||[]),...(V.errs||[])];ok('RX-JS',errs.length===0,'no JavaScript errors',errs.slice(0,3).join('|'));
  const f=U.results.filter(r=>!r.pass);console.log(`\n=== REMAINING UAT (${MODE}): ${U.results.length-f.length} passed, ${f.length} failed ===`);
  await br.close();process.exit(0);
 })().catch(e=>{console.error('RUNNER ERROR',String(e.stack||e.message).split(process.env.POM_FLOW_URL||'\u0000').join('<flow-url>'));try{purge()}catch{};process.exit(2);});
