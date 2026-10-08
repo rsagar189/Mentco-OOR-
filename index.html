@@ -628,7 +628,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.7.8';
+const APP_VERSION = '1.7.9';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -2046,7 +2046,7 @@ function orderRelinkModalHTML(){
         <div><div class="rl-label">Shipment Invoice</div>
           <select class="rlselect ship-inv-sel" id="rlShipInv${i}">
             <option value="">— No change —</option>
-            ${allInvoices.map(inv=>{const isLinked=curShips.some(s=>s.shippingInvoiceNo===inv);return`<option value="${esc(inv)}"${isLinked?' selected':''}>${esc(inv)}${isLinked?' ✓ linked':''}</option>`;}).join('')}
+            ${allInvoices.map(inv=>{const isLinked=curShips.some(s=>s.shippingInvoiceNo===inv);return`<option value="${esc(inv)}">${esc(inv)}${isLinked?' ✓ linked':''}</option>`;}).join('')}
           </select>
         </div>
         ${curShips.length?`<div style="margin-top:8px;font-size:11px;color:var(--muted)">Currently linked: ${curShips.map(s=>`<span class="badge b-purple" style="margin-left:4px">${esc(s.shippingInvoiceNo)}</span>`).join('')}</div>`:''}

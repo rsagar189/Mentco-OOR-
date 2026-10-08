@@ -20,6 +20,14 @@ const U=require('./lib');const H=require('./helpers');const {ok}=U;
  const o2=await A.evaluate(()=>{const c=document.querySelector('.line-item').getBoundingClientRect();return[...document.querySelectorAll('.line-item input,.line-item select,.line-item textarea')].filter(e=>e.getBoundingClientRect().right>c.right+1).length;});
  ok('LOOK-shipform-1280',o2===0,'shipment line fields stay inside their card at 1280px wide',String(o2));
  
+ // Order re-link dialog: Save without choosing anything must change nothing
+ await A.evaluate(()=>{S.page='orders';S.editing=null;render();});await H.sleep(200);
+ const before=await A.evaluate(()=>JSON.stringify(S.shipments.map(s=>s.lines.map(l=>[l.customerPONo,l.partNo,l.orderLineNo,l.shippedQty]))));
+ await A.evaluate(()=>{const o=S.orders.find(x=>x.customerPONo==='LK-PO');S.relinkOrderId=o.id;S.relinkOrderLineIdx=null;S.showOrderRelink=true;render();});await H.sleep(300);
+ const dflt=await A.evaluate(()=>document.querySelector('.ship-inv-sel').value);
+ await A.click('#orderRelinkSave');await H.sleep(400);await A.evaluate(()=>{S.modal=null;render();});
+ const after=await A.evaluate(()=>JSON.stringify(S.shipments.map(s=>s.lines.map(l=>[l.customerPONo,l.partNo,l.orderLineNo,l.shippedQty]))));
+ ok('LOOK-relink-noop',dflt===''&&before===after,'order Re-link dialog starts on "No change"; pressing Save without a choice changes nothing',dflt+' | '+(before===after));
  // Staff updating a saved order: cannot remove or add lines (only the fields the banner lists)
  await H.nav(A,'users');await A.fill('#uName','Look Staff');await A.fill('#uEmail','look.staff@example.com');await A.fill('#uPassword','Look-Staff-Pw1!');await A.selectOption('#uRole','Staff');await A.click('#saveUserBtn');await H.settle(A,800);await H.sleep(300);
  const T=await H.newPage(br);await H.login(T,'look.staff@example.com','Look-Staff-Pw1!');
