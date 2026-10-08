@@ -44,13 +44,13 @@ Right now this box holds one step, **Login failed**. We will put it inside a new
    - **Status Code** `429`, **Headers** `Content-Type` = `application/json`
    - **Body**: `{"error":"Too many failed attempts. Try again in 15 minutes."}`
 4. In **Is locked → False**: add these, in this order:
-   - **Compose** → rename `NewFails` → **Inputs**, Expression tab:
+   - **Compose** → rename `NewFails` → **Inputs**, Expression tab (it must also work when the email does not exist):
      ```
-     add(coalesce(json(first(body('Get_user')?['value'])?['POM_Data'])?['fails'],0),1)
+     if(greater(length(body('Get_user')?['value']),0),add(coalesce(json(first(body('Get_user')?['value'])?['POM_Data'])?['fails'],0),1),0)
      ```
    - **Compose** → rename `UserNew` → **Inputs**, Expression tab (one line):
      ```
-     setProperty(setProperty(json(first(body('Get_user')?['value'])?['POM_Data']),'fails',if(greater(outputs('NewFails'),4),0,outputs('NewFails'))),'lockUntil',if(greater(outputs('NewFails'),4),addMinutes(utcNow(),15),''))
+     if(greater(length(body('Get_user')?['value']),0),setProperty(setProperty(json(first(body('Get_user')?['value'])?['POM_Data']),'fails',if(greater(outputs('NewFails'),4),0,outputs('NewFails'))),'lockUntil',if(greater(outputs('NewFails'),4),addMinutes(utcNow(),15),'')),json('{}'))
      ```
    - **Condition** → rename `User exists` → left box Expression tab: `greater(length(body('Get_user')?['value']),0)` → **is equal to** → `true`.
      In **User exists → True** add **Send an HTTP request to SharePoint**, rename `Save failed attempt`:
