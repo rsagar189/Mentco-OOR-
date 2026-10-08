@@ -628,7 +628,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.7.7';
+const APP_VERSION = '1.7.8';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -2348,7 +2348,7 @@ function orderFormHTML(){
           ${isAdmin()&&isView?`<button class="btn btn-warn btn-sm" data-action="relinkOrderLine" data-id="${o.id}" data-li="${i}">Re-link Line</button>`:''}
           ${canEdit()&&!ro&&!isLineCancelled?`<button class="btn btn-warn btn-sm" data-action="cancelLine" data-li="${i}">Cancel Line</button>`:''}
           ${isAdmin()&&!ro&&isLineCancelled?`<button class="btn btn-success btn-sm" data-action="reopenLine" data-li="${i}">Reopen Line</button>`:''}
-          ${!ro&&(o.lines.length>1)&&!isLineCancelled?`<button class="btn btn-danger btn-sm" data-action="removeLine" data-li="${i}">Remove</button>`:''}
+          ${!ro&&!staffOrderPartial&&(o.lines.length>1)&&!isLineCancelled?`<button class="btn btn-danger btn-sm" data-action="removeLine" data-li="${i}">Remove</button>`:''}
         </div>
       </div>
       <div class="grid3">
@@ -2485,7 +2485,7 @@ function orderFormHTML(){
     <div class="line-items-wrap">
       <div class="sec-title" style="margin-bottom:14px">Line Items</div>
       <div id="linesContainer">${linesHTML}</div>
-      ${!ro?`<button class="add-line" id="addLineBtn">+ Add Line Item</button>`:''}
+      ${!ro&&!staffOrderPartial?`<button class="add-line" id="addLineBtn">+ Add Line Item</button>`:''}
     </div>
   </div>`;
 

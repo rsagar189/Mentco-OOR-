@@ -20,5 +20,14 @@ const U=require('./lib');const H=require('./helpers');const {ok}=U;
  const o2=await A.evaluate(()=>{const c=document.querySelector('.line-item').getBoundingClientRect();return[...document.querySelectorAll('.line-item input,.line-item select,.line-item textarea')].filter(e=>e.getBoundingClientRect().right>c.right+1).length;});
  ok('LOOK-shipform-1280',o2===0,'shipment line fields stay inside their card at 1280px wide',String(o2));
  
+ // Staff updating a saved order: cannot remove or add lines (only the fields the banner lists)
+ await H.nav(A,'users');await A.fill('#uName','Look Staff');await A.fill('#uEmail','look.staff@example.com');await A.fill('#uPassword','Look-Staff-Pw1!');await A.selectOption('#uRole','Staff');await A.click('#saveUserBtn');await H.settle(A,800);await H.sleep(300);
+ const T=await H.newPage(br);await H.login(T,'look.staff@example.com','Look-Staff-Pw1!');
+ await T.evaluate(()=>{const o=S.orders[0];S.editing=cloneObj(o);S.orderWizStep=2;S.page='edit-order';render();});await H.sleep(300);
+ const st=await T.evaluate(()=>({remove:!!document.querySelector('[data-action="removeLine"]'),add:!!document.getElementById('addLineBtn'),cancel:!!document.querySelector('[data-action="cancelLine"]')}));
+ ok('LOOK-staff-update',!st.remove&&!st.add&&st.cancel,'Staff updating a saved order: no Remove, no Add Line (Cancel Line stays)',JSON.stringify(st));
+ // read-only roles never see the New Shipment button
+ const v=await T.evaluate(()=>{S.user.role='Viewer1';const o=S.orders[0];S.editing=cloneObj(o);S.page='view-order';render();return !!document.getElementById('newShipFromOrderBtn');});
+ ok('LOOK-viewer-noship',v===false,'a read-only role does not see "New Shipment for this PO"');
  const f=U.results.filter(r=>!r.pass);console.log(`\n=== LOOK: ${U.results.length-f.length} passed, ${f.length} failed ===`);await br.close();process.exit(0);
 })().catch(e=>{console.error('ERR',e.message);process.exit(2);});
