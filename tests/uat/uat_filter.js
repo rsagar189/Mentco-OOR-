@@ -1,0 +1,56 @@
+// Search/filter shows only matching lines (orders + shipments), Buyer's Name dropdown managed by Admin
+const U=require('./lib');const H=require('./helpers');const {ok}=U;const sl=H.sleep;
+(async()=>{U.seedMock();const br=await U.launch();const A=await H.newPage(br);await A.setViewportSize({width:1440,height:900});await H.login(A,'admin@uat.test','pw');
+ const mk=(i,p,q)=>({lineNo:i,partNo:p,poQty:q,delivered:0,inTransit:0,shipmentType:i%2?'Kan-Ban':'Dropship',inTransitDays:7,originalDockDate:'2030-03-0'+i,usSalesOrder:'',usQBPO:'',additionalNotes:'',usRate:1,indiaRate:1,shipDate1:'',revisedShipDate:''});
+ await A.evaluate(([a,b,c,d])=>{S.orders=[{id:901,saved:true,customerName:'Haskel Test',orderDate:'2026-10-08',customerPONo:'FILT-1',blanketOrderNo:'',consignment:false,buyerName:'Old Buyer',lines:[a,b,c,d]},{id:902,saved:true,customerName:'Other Co',orderDate:'2026-10-09',customerPONo:'FILT-2',blanketOrderNo:'',consignment:false,buyerName:'Zed',lines:[{...a,partNo:'ZZ-9'}]}];
+  S.shipments=[{id:801,saved:true,shippingInvoiceNo:'INV-F1',gstInvoiceNo:'',dateOfInvoice:'2026-10-01',dateOfShipping:'2026-10-02',transportMethod:'Air',logistics:'DHL',trackingNo:'TRK1',customsHouseAgent:'',kanban:false,location:'India',lines:[{lineNo:1,customerPONo:'FILT-1',partNo:'20G16',orderLineNo:4,shippedQty:5,shippedTo:'Haskel Test',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'',heatNo:''},{lineNo:2,customerPONo:'FILT-1',partNo:'A-4180-01',orderLineNo:1,shippedQty:6,shippedTo:'Haskel Test',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'',heatNo:''}]}];
+  S.page='orders';render();},[mk(1,'A-4180-01',200),mk(2,'A-4188-01',200),mk(3,'60UV42',10),mk(4,'20G16',70)]);await sl(300);
+ const rows=()=>A.$$eval('.table-wrap tbody tr',r=>r.map(x=>x.textContent.replace(/\s+/g,' ').trim()));
+ let r=await rows();ok('FL-1',r.length===5,'without a search every line is listed (4 + 1 rows)',r.length);
+ await H.put(A,'#searchInput','20g16');await sl(900);r=await rows();
+ ok('FL-2',r.length===1&&/20G16/.test(r[0])&&/FILT-1/.test(r[0])&&/Haskel/.test(r[0]),'searching a part shows only that line, with the order details on it',JSON.stringify(r));
+ ok('FL-3',/1 of 4 lines shown/.test(await A.textContent('.table-wrap'))&&/Show all lines of these orders/.test(await A.textContent('body')),'the screen says "1 of 4 lines shown" and offers "Show all lines"');
+ await A.click('text=Show all lines of these orders');await sl(400);r=await rows();ok('FL-4',r.length===4,'"Show all lines" brings back all 4 lines of that order',r.length);
+ await A.click('text=Show matching lines only');await sl(300);r=await rows();ok('FL-5',r.length===1,'and it can be switched back to matching lines only');
+ await H.put(A,'#searchInput','haskel');await sl(900);r=await rows();ok('FL-6',r.length===4,'searching the customer name still shows the whole order (4 lines)',r.length);
+ await H.put(A,'#searchInput','');await sl(900);
+ await A.evaluate(()=>{S.filters.partNos=['60UV42'];render();});await sl(300);r=await rows();
+ ok('FL-7',r.length===1&&/60UV42/.test(r[0]),'the Part No filter also shows only the matching line',JSON.stringify(r));
+ await A.evaluate(()=>{S.filters.partNos=[];S.filters.shipmentTypes=['Dropship'];render();});await sl(300);r=await rows();
+ ok('FL-8',r.length===2&&/A-4188-01/.test(r[0])&&/20G16/.test(r[1])&&/2 of 4 lines shown/.test(r[0]),'the Shipment Type filter shows only the lines of that type (2 of 4)',JSON.stringify(r));
+ await A.evaluate(()=>{S.filters.shipmentTypes=[];S.filters.partNos=['20G16'];render();});await sl(300);
+ await A.click('[data-action="view"][data-id="901"]');await sl(400);
+ const vl=await A.$$eval('.ln',e=>e.length);ok('FL-9',vl===1&&/Showing 1 of 4 lines/.test(await A.textContent('.ln-filt')),'opening the order from a part search shows only that line, with a banner',vl);
+ ok('FL-10',/Lines\s*4/.test(await A.textContent('.ln-tot')),'order totals still count the whole order (4 lines)');
+ await A.click('.ln-filt button');await sl(400);ok('FL-11',(await A.$$eval('.ln',e=>e.length))===4,'"Show all lines" in the order view shows all 4');
+ await A.evaluate(()=>{S.filters.partNos=[];S.page='orders';render();});await sl(300);
+ await A.click('[data-action="view"][data-id="901"]');await sl(300);ok('FL-12',(await A.$$eval('.ln',e=>e.length))===4&&!(await A.$('.ln-filt')),'with no search/filter the order view shows every line and no banner');
+ // edit form always shows everything
+ await A.evaluate(()=>{S.filters.partNos=['20G16'];S.page='orders';render();});await sl(300);
+ await A.click('[data-action="edit"][data-id="901"]');await sl(400);await A.click('#wizNextBtn');await sl(400);
+ ok('FL-13',(await A.$$eval('.ln',e=>e.length))===4,'the edit form always shows all lines (nothing can be lost on save)');
+ await A.evaluate(()=>{S.filters.partNos=[];S.page='orders';S.editing=null;render();});
+ // shipments
+ await A.evaluate(()=>{S.page='shipments';S.shipSearch='';render();});await sl(300);
+ r=await rows();ok('FL-14',r.length===2,'shipments: without a search both lines show',r.length);
+ await H.put(A,'#shipSearchInput','20g16');await sl(900);r=await rows();
+ ok('FL-15',r.length===1&&/20G16/.test(r[0])&&/INV-F1/.test(r[0])&&/1 of 2 lines shown/.test(r[0]),'shipments: searching a part shows only that line, with the invoice details',JSON.stringify(r));
+ await A.click('[data-action="viewShipment"][data-id="801"]');await sl(400);
+ ok('FL-16',/Showing 1 of 2 lines/.test(await A.textContent('.ln-filt')),'shipment view shows the banner and only the matching line');
+ // Buyer dropdown
+ await A.evaluate(()=>{S.page='orders';S.editing=null;S.shipSearch='';render();});await sl(200);
+ await H.nav(A,'orders');await A.click('#newOrderBtn');await sl(300);
+ let bo=await A.$$eval('[data-f="buyerName"] option',o=>o.map(x=>x.textContent.trim()));
+ ok('FL-17',(await A.evaluate(()=>document.querySelector('[data-f="buyerName"]').tagName))==='SELECT'&&bo.includes('Old Buyer')&&bo.includes('Zed')&&bo[0].startsWith('—'),'Buyer\'s Name is a dropdown, starting with the buyers already used',JSON.stringify(bo));
+ await H.nav(A,'masters');await A.click('[data-master-tab="lists"]').catch(()=>{});await sl(300);
+ await A.fill('#setBuyers','Zoe Buyer\nAmit Buyer');await A.click('#saveListsBtn');await H.settle(A,800);
+ await H.nav(A,'orders');await A.click('#newOrderBtn');await sl(300);
+ bo=await A.$$eval('[data-f="buyerName"] option',o=>o.map(x=>x.textContent.trim()));
+ ok('FL-18',JSON.stringify(bo.slice(1))===JSON.stringify(['Amit Buyer','Zoe Buyer']),'Admin edits the list; the dropdown shows it A-Z',JSON.stringify(bo));
+ await A.evaluate(()=>{S.page='orders';S.editing=null;render();});await sl(200);
+ await A.click('[data-action="edit"][data-id="901"]');await sl(400);
+ const keep=await A.evaluate(()=>{const s=document.querySelector('[data-f="buyerName"]');return s.value+'|'+[...s.options].map(o=>o.textContent).join(',');});
+ ok('FL-19',/^Old Buyer\|/.test(keep),'an older order keeps its buyer even if that name is no longer in the list',keep);
+ await A.click('#wizNextBtn');await sl(300);await A.click('#wizBackBtn').catch(()=>{});
+ const f=U.results.filter(r=>!r.pass);console.log(`\n=== FILTER/BUYER: ${U.results.length-f.length} passed, ${f.length} failed ===`);await br.close();process.exit(0);
+})().catch(e=>{console.error('ERR',e.message);process.exit(2);});

@@ -5,7 +5,7 @@ async function settle(pg,ms=600){let quiet=0,n=0;while(quiet<ms&&n<400){const f=
 async function newPage(br){const pg=await U.openApp(br,APP);await pg.addInitScript(()=>{window.__inflight=0;const f=window.fetch;window.fetch=function(){window.__inflight++;return f.apply(this,arguments).finally(()=>{window.__inflight--;});};});await pg.reload();return pg;}
 async function login(pg,e,p){await pg.fill('#lemail',e);await pg.fill('#lpass',p);await pg.click('#lbtn');await settle(pg,800);await sleep(300);}
 const signedIn=pg=>pg.evaluate(()=>!!S.user&&S.page!=='login');
-const put=async(pg,sel,val)=>{await pg.fill(sel,String(val));await pg.press(sel,'Tab').catch(()=>{});await sleep(160);};
+const put=async(pg,sel,val)=>{if(await pg.$eval(sel,e=>e.tagName).catch(()=>'')==='SELECT'){await pg.$eval(sel,(e,v)=>{if(![...e.options].some(o=>o.value===v||o.textContent===v)){const o=document.createElement('option');o.textContent=v;e.appendChild(o);}},String(val));await pg.selectOption(sel,String(val));await sleep(160);return;}await pg.fill(sel,String(val));await pg.press(sel,'Tab').catch(()=>{});await sleep(160);};
 const nav=async(pg,p)=>{await pg.click(`[data-nav="${p}"]`);await sleep(250);};
 async function confirmModal(pg){await pg.click('#modalConfirm');await settle(pg,800);}
 async function addCustomer(pg,name){await nav(pg,'masters');await pg.click('[data-master-tab="customers"]');await pg.fill('#newCustName',name);await pg.click('#addCustBtn');await settle(pg);}

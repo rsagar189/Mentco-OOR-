@@ -630,6 +630,8 @@ b,strong,th{font-weight:600}
 .ln .li-actions:empty{display:none}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .grid4>*{min-width:0}
+.ln-hid{font-size:10.5px;color:var(--muted);margin-top:4px;white-space:nowrap}
+.ln-filt{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;padding:9px 12px;border:1px solid var(--accent-mid);background:var(--info-l);border-radius:var(--rs);font-size:12.5px}
 .ln-tot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px 26px;padding:12px 4px 0;font-size:13px;align-items:baseline}
 .ln-tot b{font-size:15px;font-variant-numeric:tabular-nums}
 .ln-tot .ln-ctx{margin-right:auto;color:var(--muted);font-size:12px}
@@ -669,7 +671,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.9.0';
+const APP_VERSION = '1.10.0';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -691,7 +693,7 @@ const EMPTY_FILTERS=()=>({customers:[],shipmentTypes:[],poStatuses:[],partNos:[]
 const EMPTY_SHIP_FILTERS=()=>({customers:[],locations:[],deliveryStatuses:[],partNos:[],poNos:[],kanban:'',shipDateFrom:'',shipDateTo:'',deliveryDateFrom:'',deliveryDateTo:''});
 function goOrders(f){S.filters={...EMPTY_FILTERS(),...(f||{})};S.search='';S.page='orders';render();}
 function goShipments(f){S.shipFilters={...EMPTY_SHIP_FILTERS(),...(f||{})};S.shipSearch='';S.page='shipments';render();}
-function openOrderView(id){const o=S.orders.find(x=>x.id===id);if(!o)return;S.editing=cloneObj(o);S.page='view-order';render();}
+function openOrderView(id){const o=S.orders.find(x=>x.id===id);if(!o)return;S.editing=cloneObj(o);S.viewLines=null;S.page='view-order';render();}
 function sortArrow(st,key){return st&&st.key===key?(st.dir>0?' ▲':' ▼'):'';}
 function sortTh(label,key,which,extra){const st=which==='o'?S.orderSort:S.shipSort;return`<th class="sortable" title="Click to sort" onclick="setSort('${which}','${key}')" ${extra||''}>${label}${sortArrow(st,key)}</th>`;}
 function setSort(which,key){const k=which==='o'?'orderSort':'shipSort';const st=S[k]||{};S[k]=st.key===key?(st.dir>0?{key,dir:-1}:{key:'',dir:1}):{key,dir:1};render();}
@@ -938,9 +940,10 @@ function applyListSettings(rows){
   S.settingsSpId=rowId(r);const d=spDeserialize(r)||{};
   if(Array.isArray(d.locations)&&d.locations.length){LOCATIONS.length=0;LOCATIONS.push(...d.locations);}
   if(Array.isArray(d.shipTypes)&&d.shipTypes.length){SHIP_TYPES.length=0;SHIP_TYPES.push(...d.shipTypes);}
+  if(Array.isArray(d.buyers)){BUYERS.length=0;BUYERS.push(...d.buyers);}
 }
 async function spSaveSettings(){
-  const f=spSerialize({locations:[...LOCATIONS],shipTypes:[...SHIP_TYPES]},'settings');
+  const f=spSerialize({locations:[...LOCATIONS],shipTypes:[...SHIP_TYPES],buyers:[...BUYERS]},'settings');
   if(S.settingsSpId){await flowCall('updateItem',SP_LISTS.AppState,{itemId:S.settingsSpId,...f});}
   else{const c=await flowCall('createItem',SP_LISTS.AppState,f);S.settingsSpId=rowId(c);}
 }
@@ -1131,7 +1134,7 @@ function showErrorScreen(msg){
 
 // Demo-only account, used ONLY when no Power Automate URL is set (local preview). Real users live in SharePoint (POM_Users).
 let USERS=[{id:1,name:'Demo Admin',email:'demo@example.com',password:'demo',role:'Admin'}];
-const LOCATIONS=['India','SAT'];const DELIVERY_STATUSES=['In Transit','Delivered'];const SHIP_TYPES=['Kan-Ban','SAT Warehouse','Dropship'];const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const LOCATIONS=['India','SAT'];const DELIVERY_STATUSES=['In Transit','Delivered'];const SHIP_TYPES=['Kan-Ban','SAT Warehouse','Dropship'];const BUYERS=[];const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // ── MULTI-SELECT HELPERS ──
 // Renders a custom multi-select dropdown
@@ -1236,6 +1239,7 @@ function emptyShipLine(n){return{lineNo:n,customerPONo:'',partNo:'',orderLineNo:
 function cloneObj(o){return JSON.parse(JSON.stringify(o));}
 function orderStatus(o){const allCancelled=o.lines.length>0&&o.lines.every(l=>l.lineStatus==='Cancelled');if(allCancelled)return'Cancelled';return o.lines.some(l=>calcLine(l).poStatus==='Open')?'Open':'Closed';}
 function partsForCust(custName){const c=S.customers.find(x=>x.name===custName);if(!c)return[];return S.parts.filter(p=>p.custId===c.id);}
+function allBuyers(cur){const t=new Set(BUYERS.length?BUYERS:S.orders.map(o=>(o.buyerName||'').trim()).filter(Boolean));if(cur)t.add(cur);return[...t].sort(_nat);}
 function allShipTypes(){const t=new Set(SHIP_TYPES);S.orders.forEach(o=>o.lines.forEach(l=>{if(l.shipmentType)t.add(l.shipmentType);}));return[...t];}
 function allOrderPartNos(){return[...new Set(S.orders.flatMap(o=>o.lines.map(l=>l.partNo)).filter(Boolean))].sort();}
 function allShipPartNos(){return[...new Set(S.shipments.flatMap(s=>s.lines.map(l=>l.partNo)).filter(Boolean))].sort();}
@@ -1424,6 +1428,42 @@ function auditPanelHTML(type,refId){
   </div>`;
 }
 
+// Line-level search/filter: when the user searches or filters on part, type, dates etc. only the lines that match are listed.
+function visOrderLines(o){
+  const f=S.filters,q=(S.search||'').toLowerCase().trim(),all=(o.lines||[]).map((l,i)=>({l,i}));
+  if(S.showAllLines)return all;
+  const orderQ=q&&((o.customerName||'').toLowerCase().includes(q)||(o.customerPONo||'').toLowerCase().includes(q)||(o.buyerName||'').toLowerCase().includes(q));
+  const v=all.filter(({l})=>{
+    if(q&&!orderQ&&!String(l.partNo||'').toLowerCase().includes(q))return false;
+    if((f.partNos||[]).length&&!msMatch(f.partNos,l.partNo))return false;
+    if((f.shipmentTypes||[]).length&&!msMatch(f.shipmentTypes,l.shipmentType))return false;
+    if(f.inTransitOnly&&!((+l.inTransit||0)>0))return false;
+    if(f.dockDateFrom&&!(l.originalDockDate>=f.dockDateFrom))return false;
+    if(f.dockDateTo&&!(l.originalDockDate<=f.dockDateTo))return false;
+    if(f.shipDateFrom&&!((l.shipDate1||l.revisedShipDate)>=f.shipDateFrom))return false;
+    if(f.shipDateTo&&!((l.shipDate1||l.revisedShipDate)<=f.shipDateTo))return false;
+    return true;
+  });
+  return v.length?v:all;
+}
+function visShipLines(s){
+  const f=S.shipFilters,q=(S.shipSearch||'').toLowerCase().trim(),all=(s.lines||[]).map((l,i)=>({l,i}));
+  if(S.showAllLines)return all;
+  const shipQ=q&&((s.shippingInvoiceNo||'').toLowerCase().includes(q)||(s.trackingNo||'').toLowerCase().includes(q));
+  const v=all.filter(({l})=>{
+    if(q&&!shipQ&&!((l.shippedTo||'').toLowerCase().includes(q)||(l.partNo||'').toLowerCase().includes(q)||(l.customerPONo||'').toLowerCase().includes(q)))return false;
+    if((f.customers||[]).length&&!msMatch(f.customers,l.shippedTo))return false;
+    if((f.deliveryStatuses||[]).length&&!msMatch(f.deliveryStatuses,l.deliveryStatus))return false;
+    if((f.partNos||[]).length&&!msMatch(f.partNos,l.partNo))return false;
+    if((f.poNos||[]).length&&!msMatch(f.poNos,l.customerPONo))return false;
+    if(f.deliveryDateFrom&&!(l.deliveryDate&&l.deliveryDate>=f.deliveryDateFrom))return false;
+    if(f.deliveryDateTo&&!(l.deliveryDate&&l.deliveryDate<=f.deliveryDateTo))return false;
+    return true;
+  });
+  return v.length?v:all;
+}
+function viewBanner(){if(!S.viewLines||(S.page!=='view-order'&&S.page!=='view-shipment'))return'';const tot=(S.page==='view-order'?S.editing:S.editingShipment)?.lines?.length||0;return`<div class="ln-filt"><span>Showing <b>${S.viewLines.length}</b> of <b>${tot}</b> lines (matching your search/filter)</span><button class="btn btn-secondary btn-sm" onclick="S.viewLines=null;render()">Show all lines</button></div>`;}
+function lineNote(shown,total){return shown<total?`<div class="ln-hid">${shown} of ${total} lines shown</div>`:'';}
 function applyOrderFilters(orders){const f=S.filters,q=S.search.toLowerCase();const todayStr=today();return orders.filter(o=>{
   // due window filter — based on max(shipDate1, revisedShipDate) of open lines
   if(f.dueWindow){
@@ -2042,7 +2082,7 @@ function ordersHTML(){
     </div>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-    <div style="font-size:12px;color:var(--muted)">Showing <strong>${filtered.length}</strong> of <strong>${S.orders.length}</strong> orders</div>
+    <div style="font-size:12px;color:var(--muted)">Showing <strong>${filtered.length}</strong> of <strong>${S.orders.length}</strong> orders${filtered.some(o=>visOrderLines(o).length<o.lines.length)||S.showAllLines?` · <a href="#" style="color:var(--accent)" onclick="S.showAllLines=!S.showAllLines;render();return false">${S.showAllLines?'Show matching lines only':'Show all lines of these orders'}</a>`:''}</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       ${['today','7days','30days'].map(w=>{
         const labels={overdue:'⚠ Overdue',today:'Due Today','7days':'Due 7 Days','30days':'Due 30 Days'};
@@ -2078,7 +2118,8 @@ function ordersHTML(){
     <thead><tr>${sortTh('Order Date','date','o')}${sortTh('Customer','customer','o')}${sortTh('Customer PO No','po','o')}<th>Part No</th><th>PO Qty</th><th>Delivered</th><th>In Transit</th>${sortTh('PO Open Qty','open','o')}<th>Progress</th>${sortTh('Status','status','o')}<th>Actions</th></tr></thead>
     <tbody>${filtered.length?filtered.map(o=>{
       const st=orderStatus(o);
-      return o.lines.map((l,li)=>{
+      const vis=visOrderLines(o),first=vis[0]?vis[0].i:0;
+      return vis.map(({l,i:li})=>{
         const c=calcLine(l);
         // risk dot
         let riskClass='green';
@@ -2090,9 +2131,9 @@ function ordersHTML(){
         const progClass=pct>=100?'done':(riskClass==='red'?'warn':'');
         const rowStyle=st==='Cancelled'?'background:rgba(220,38,38,.03);opacity:.85':'';
         return`<tr style="${rowStyle}">
-          <td style="font-size:12px;white-space:nowrap">${li===0?(fmtDate(o.orderDate)||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-size:12px;font-weight:500">${li===0?`<div style="display:flex;align-items:center;gap:6px"><span class="risk-dot ${riskClass}"></span>${esc(o.customerName||'—')}</div>`:'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-family:Inter,sans-serif;font-size:12px;font-weight:500">${li===0?esc(o.customerPONo||'—'):'<span style="color:var(--light);font-size:11px">↳ same PO</span>'}</td>
+          <td style="font-size:12px;white-space:nowrap">${li===first?(fmtDate(o.orderDate)||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-size:12px;font-weight:500">${li===first?`<div style="display:flex;align-items:center;gap:6px"><span class="risk-dot ${riskClass}"></span>${esc(o.customerName||'—')}</div>`:'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:12px;font-weight:500">${li===first?esc(o.customerPONo||'—'):'<span style="color:var(--light);font-size:11px">↳ same PO</span>'}</td>
           <td style="font-family:Inter,sans-serif;font-size:12px">${esc(l.partNo||'—')}</td>
           <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right">${l.poQty||'—'}</td>
           <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right;color:var(--success)">${l.delivered||0}</td>
@@ -2100,14 +2141,14 @@ function ordersHTML(){
           <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right;font-weight:500;color:${c.poOpenQty>0?'var(--accent)':'var(--muted)'}">${c.poOpenQty}</td>
           <td style="min-width:100px"><div class="prog-bar-wrap"><div class="prog-bar-track"><div class="prog-bar-fill ${progClass}" style="width:${pct}%"></div></div><span class="prog-pct">${pct}%</span></div></td>
           <td>
-            ${li===0?`<span class="badge ${st==='Cancelled'?'b-red':st==='Open'?'b-blue':'b-green'}">${st}</span>`:''}
+            ${li===first?`<span class="badge ${st==='Cancelled'?'b-red':st==='Open'?'b-blue':'b-green'}">${st}</span>`:''}
             ${(()=>{const lSt=l.lineStatus||'Open';if(lSt==='Cancelled')return`<span class="badge b-cancelled" style="font-size:11px;margin-top:2px;display:inline-block">Line Cancelled</span>`;if(lSt==='Short Closed')return`<span class="badge b-short-closed" style="font-size:11px;margin-top:2px;display:inline-block">Short Closed</span>`;return'';})()}
           </td>
-          <td>${li===0?`<div class="action-btns">
+          <td>${li===first?`<div class="action-btns">
             <button class="btn btn-secondary btn-sm" data-action="view" data-id="${o.id}">View</button>
             ${(isAdmin()||S.user?.role==='Staff')?`<button class="btn btn-secondary btn-sm" data-action="edit" data-id="${o.id}">${S.user?.role==='Staff'?'Update':'Edit'}</button>`:''}
             ${isAdmin()?`<button class="btn btn-secondary btn-sm" style="color:var(--danger)" data-action="deleteOrder" data-id="${o.id}">Delete</button>`:''}
-          </div>`:'&nbsp;'}</td>
+          </div>${lineNote(vis.length,o.lines.length)}`:'&nbsp;'}</td>
         </tr>`;
       }).join('');
     }).join(''):`<tr><td colspan="11"><div class="empty-state">${S.orders.length===0?`<b>No orders yet</b>${canEdit()?'Create your first purchase order to get started.<br><button class="btn btn-primary btn-sm" onclick="S.editing={lines:[emptyLine(1)],consignment:false,orderDate:today()};S.orderWizStep=1;S.page=\'new-order\';render()">+ New Order</button>':'Orders will appear here once they are created.'}`:`<b>No orders match your filters</b>Try a different search or clear the filters.<br><button class="btn btn-secondary btn-sm" onclick="S.filters=EMPTY_FILTERS();S.search=\'\';render()">Clear filters</button>`}</div></td></tr>`}</tbody>
@@ -2355,30 +2396,31 @@ function shipmentsHTML(){
     </div>
     <div class="fp-actions"><button class="btn btn-purple btn-sm" id="applyShipFilters">Apply</button><button class="btn btn-secondary btn-sm" id="resetShipFilters">Reset All</button></div>
   </div>
-  <div style="margin-bottom:10px;font-size:12px;color:var(--muted)">Showing <strong>${filtered.length}</strong> of <strong>${S.shipments.length}</strong> shipments</div>
+  <div style="margin-bottom:10px;font-size:12px;color:var(--muted)">Showing <strong>${filtered.length}</strong> of <strong>${S.shipments.length}</strong> shipments${filtered.some(x=>visShipLines(x).length<x.lines.length)||S.showAllLines?` · <a href="#" style="color:var(--purple)" onclick="S.showAllLines=!S.showAllLines;render();return false">${S.showAllLines?'Show matching lines only':'Show all lines of these shipments'}</a>`:''}</div>
   <div class="table-wrap tall"><table class="dt">
     <thead><tr>${sortTh('Date','date','s')}${sortTh('Invoice No','invoice','s')}<th>Customer PO No</th><th>Part No</th><th>Qty</th><th>Logistics</th><th>Tracking No</th>${sortTh('Delivery Status','status','s')}<th>Delivery Date</th><th>Actions</th></tr></thead>
     <tbody>${filtered.length?filtered.map(s=>{
       const allDel=s.lines.every(l=>l.deliveryStatus==='Delivered');
-      return s.lines.map((l,li)=>{
+      const vis=visShipLines(s),first=vis[0]?vis[0].i:0;
+      return vis.map(({l,i:li})=>{
         const delBadge=l.deliveryStatus==='Delivered'?'b-green':l.deliveryStatus==='In Transit'?'b-yellow':'b-gray';
         const rowTint=l.deliveryStatus==='Delivered'?'rgba(22,163,74,.03)':l.deliveryStatus==='In Transit'?'rgba(217,119,6,.03)':'';
         return`<tr style="${rowTint?`background:${rowTint}`:''}">
-          <td style="font-size:12px;white-space:nowrap">${li===0?(fmtDate(s.dateOfShipping)||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-family:Inter,sans-serif;font-size:11px;font-weight:500">${li===0?esc(s.shippingInvoiceNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-size:12px;white-space:nowrap">${li===first?(fmtDate(s.dateOfShipping)||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:11px;font-weight:500">${li===first?esc(s.shippingInvoiceNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
           <td style="font-family:Inter,sans-serif;font-size:12px;font-weight:500">${esc(l.customerPONo||'—')}</td>
           <td style="font-family:Inter,sans-serif;font-size:12px">${esc(l.partNo||'—')}</td>
           <td style="font-family:Inter,sans-serif;font-size:12px;text-align:right">${l.shippedQty||'—'}</td>
-          <td style="font-size:12px">${li===0?esc(s.logistics||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
-          <td style="font-family:Inter,sans-serif;font-size:11px;color:var(--muted)">${li===0?esc(s.trackingNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-size:12px">${li===first?esc(s.logistics||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
+          <td style="font-family:Inter,sans-serif;font-size:11px;color:var(--muted)">${li===first?esc(s.trackingNo||'—'):'<span style="color:var(--border-soft)">—</span>'}</td>
           <td><span class="badge ${delBadge}">${esc(l.deliveryStatus||'—')}</span></td>
           <td style="font-size:12px">${fmtDate(l.deliveryDate)||'—'}</td>
-          <td>${li===0?`<div class="action-btns">
+          <td>${li===first?`<div class="action-btns">
             <button class="btn btn-secondary btn-sm" data-action="viewShipment" data-id="${s.id}">View</button>
             ${(isAdmin()||S.user?.role==='Staff')?`<button class="btn btn-secondary btn-sm" data-action="editShipment" data-id="${s.id}">${S.user?.role==='Staff'?'Update':'Edit'}</button>`:''}
             ${isAdmin()?`<button class="btn btn-purple btn-sm" data-action="relinkShipment" data-id="${s.id}">Re-link</button>`:''}
             ${isAdmin()?`<button class="btn btn-secondary btn-sm" style="color:var(--danger)" data-action="deleteShipment" data-id="${s.id}">Delete</button>`:''}
-          </div>`:'&nbsp;'}</td>
+          </div>${lineNote(vis.length,s.lines.length)}`:'&nbsp;'}</td>
         </tr>`;
       }).join('');
     }).join(''):`<tr><td colspan="10"><div class="empty-state">${S.shipments.length===0?`<b>No shipments yet</b>${canEdit()?'Record your first shipment to track what is on the way.<br><button class="btn btn-primary btn-sm" onclick="S.editingShipment={lines:[emptyShipLine(1)],kanban:false,location:\'India\',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page=\'new-shipment\';render()">+ New Shipment</button>':'Shipments will appear here once they are created.'}`:`<b>No shipments match your filters</b>Try a different search or clear the filters.<br><button class="btn btn-secondary btn-sm" onclick="S.shipFilters=EMPTY_SHIP_FILTERS();S.shipSearch=\'\';render()">Clear filters</button>`}</div></td></tr>`}</tbody>
@@ -2416,6 +2458,10 @@ function orderFormHTML(){
     if(isRo)return fld(l,v,null,{ro:true});
     return`<div class="fg"><label>${l}</label><select data-f="${esc(f)}">${opts.map(op=>`<option${op===v?' selected':''}>${esc(op)}</option>`).join('')}</select></div>`;
   }
+  function buyerFld(v){
+    if(ro||staffOrderPartial)return fld("Buyer's Name",v,null,{ro:true});
+    return`<div class="fg"><label>Buyer's Name</label><select data-f="buyerName"><option value="">— choose buyer —</option>${allBuyers(v).map(b=>`<option${b===v?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`;
+  }
   function numFld(l,v,f,opts={}){return fld(l,v??0,f,opts);}
   function taFld(l,v,f){return`<div class="fg" style="grid-column:1/-1"><label>${l}</label><textarea ${ro?'readonly':''} ${f?`data-f="${esc(f)}"`:''} rows="2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;resize:vertical;outline:none">${esc(v||'')}</textarea></div>`;}
 
@@ -2429,6 +2475,7 @@ function orderFormHTML(){
   const liveOrder=S.orders.find(ord=>ord.id===o.id);
   const lineCalcs=(o.lines||[]).map(l=>{const liveLine=liveOrder?.lines?.find(ll=>ll.lineNo===l.lineNo);const lc=liveLine?{...l,delivered:liveLine.delivered||0,inTransit:liveLine.inTransit||0}:l;return{lc,c:calcLine(lc)};});
   const rowsHTML=(o.lines||[]).map((l,i)=>{
+    if(isView&&S.viewLines&&!S.viewLines.includes(i))return'';
     const {lc,c}=lineCalcs[i];
     const custParts=partsForCust(o.customerName);
     const lineShips=linkedShipments.flatMap(sh=>sh.lines.filter(sl=>sl.partNo===l.partNo&&sl.customerPONo===o.customerPONo&&(sl.orderLineNo==null||sl.orderLineNo===l.lineNo)).map(sl=>({...sl,invoiceNo:sh.shippingInvoiceNo,dateOfShipping:sh.dateOfShipping})));
@@ -2590,7 +2637,7 @@ function orderFormHTML(){
             <span class="toggle-lbl" id="togLbl">${o.consignment?'Yes':'No'}</span>
           </div>
         </div>
-        ${fld("Buyer's Name",o.buyerName,'buyerName')}
+        ${buyerFld(o.buyerName)}
       </div>
     </div>
   </div>`;
@@ -2697,9 +2744,9 @@ function orderFormHTML(){
           ${fld('Customer PO No',o.customerPONo,'customerPONo')}
           ${fld('Blanket Order No',o.blanketOrderNo,'blanketOrderNo')}
           <div class="fg"><label>Consignment Order</label><div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="consignToggle" data-f="consignment" ${o.consignment?'checked':''} disabled><span class="toggle-track"></span></label><span class="toggle-lbl">${o.consignment?'Yes':'No'}</span></div></div>
-          ${fld("Buyer's Name",o.buyerName,'buyerName')}
+          ${buyerFld(o.buyerName)}
         </div></div>
-        <div class="line-items-wrap"><div class="sec-title" style="margin-bottom:14px">Line Items</div><div id="linesContainer">${linesHTML}</div>${lineTotalsHTML}</div>
+        <div class="line-items-wrap"><div class="sec-title" style="margin-bottom:14px">Line Items</div>${viewBanner()}<div id="linesContainer">${linesHTML}</div>${lineTotalsHTML}</div>
       </div>
       ${o.id?auditPanelHTML('order',o.id):''}`;
   }
@@ -2755,6 +2802,7 @@ function shipmentFormHTML(){
   // ── LINE ITEMS HTML ──
   const allPOs=allOrderPONos();
   const linesHTML=(sh.lines||[]).map((l,i)=>{
+    if(isView&&S.viewLines&&!S.viewLines.includes(i))return'';
     const linkedOrder=S.orders.find(o=>o.customerPONo===l.customerPONo);
     const poPartNos=linkedOrder?[...new Set(linkedOrder.lines.map(ln=>ln.partNo).filter(Boolean))]:[];
     const matchingOrderLines=linkedOrder?linkedOrder.lines.filter(ln=>ln.partNo===l.partNo):[];
@@ -2858,7 +2906,7 @@ function shipmentFormHTML(){
   const lineItemsSection=`<div class="form-card">
     <div class="line-items-wrap">
       <div class="sec-title" style="margin-bottom:14px">Shipment Line Items</div>
-      <div id="shipLinesContainer">${linesHTML}</div>
+      ${viewBanner()}<div id="shipLinesContainer">${linesHTML}</div>
       ${!ro&&!staffPartial?`<button class="add-line" id="addShipLineBtn">+ Add Line Item</button>`:''}
     </div>
   </div>`;
@@ -2957,7 +3005,7 @@ function shipmentFormHTML(){
         </div></div>
         <div class="line-items-wrap">
           <div class="sec-title" style="margin-bottom:14px">Shipment Line Items</div>
-          <div id="shipLinesContainer">${linesHTML}</div>
+          ${viewBanner()}<div id="shipLinesContainer">${linesHTML}</div>
         </div>
       </div>
       ${sh.id?auditPanelHTML('shipment',sh.id):''}`;
@@ -3100,7 +3148,7 @@ function usersHTML(){
     </div>`:''}`;
 }
 
-function listsMasterHTML(){return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Dropdown lists</span></div><div class="master-form"><p style="font-size:12px;color:var(--muted);margin-bottom:10px">One item per line. Removing an item does not change existing orders or shipments; it only removes it from the dropdown.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="fg"><label>Locations</label><textarea id="setLoc" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px">${esc(LOCATIONS.join('\n'))}</textarea></div><div class="fg"><label>Shipment types</label><textarea id="setShip" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px">${esc(SHIP_TYPES.join('\n'))}</textarea></div></div><div style="margin-top:10px;display:flex;gap:10px;align-items:center"><button class="btn btn-primary btn-sm" id="saveListsBtn">Save lists</button><span id="listsMsg" style="font-size:12px;color:var(--muted)"></span></div></div></div>${USE_COLUMNS?`<div class="master-card"><div class="master-card-header"><span class="master-card-title">Maintenance</span></div><div class="master-form"><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Re-save the loaded orders, shipments and rates so their search columns are filled in. Use once after switching on the search columns, or after loading older history.</p><button class="btn btn-secondary btn-sm" id="rebuildColsBtn">Rebuild search columns</button> <span id="rebuildMsg" style="font-size:12px;color:var(--muted)"></span></div></div>`:''}</div>`;}
+function listsMasterHTML(){return`<div style="max-width:760px"><div class="master-card"><div class="master-card-header"><span class="master-card-title">Dropdown lists</span></div><div class="master-form"><p style="font-size:12px;color:var(--muted);margin-bottom:10px">One item per line. Removing an item does not change existing orders or shipments; it only removes it from the dropdown.</p><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px"><div class="fg"><label>Locations</label><textarea id="setLoc" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px">${esc(LOCATIONS.join('\n'))}</textarea></div><div class="fg"><label>Shipment types</label><textarea id="setShip" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px">${esc(SHIP_TYPES.join('\n'))}</textarea></div><div class="fg"><label>Buyer names</label><textarea id="setBuyers" rows="6" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px">${esc(allBuyers().join('\n'))}</textarea></div></div><div style="margin-top:10px;display:flex;gap:10px;align-items:center"><button class="btn btn-primary btn-sm" id="saveListsBtn">Save lists</button><span id="listsMsg" style="font-size:12px;color:var(--muted)"></span></div></div></div>${USE_COLUMNS?`<div class="master-card"><div class="master-card-header"><span class="master-card-title">Maintenance</span></div><div class="master-form"><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Re-save the loaded orders, shipments and rates so their search columns are filled in. Use once after switching on the search columns, or after loading older history.</p><button class="btn btn-secondary btn-sm" id="rebuildColsBtn">Rebuild search columns</button> <span id="rebuildMsg" style="font-size:12px;color:var(--muted)"></span></div></div>`:''}</div>`;}
 function dupPOWarning(o){
   const po=String(o.customerPONo||'').trim().toLowerCase();if(!po||S.page!=='new-order')return'';
   const dup=S.orders.some(x=>x.id!==o.id&&String(x.customerPONo||'').trim().toLowerCase()===po&&x.customerName===o.customerName);
@@ -3314,7 +3362,7 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
   document.getElementById('shipWizPrevBtn')?.addEventListener('click',()=>{S.editingShipment=collectShipmentForm();S.shipWizStep=Math.max(1,(S.shipWizStep||1)-1);render();});
   document.getElementById('addShipLineBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();data.lines.push(emptyShipLine(data.lines.length+1));S.editingShipment=data;render();});document.getElementById('kanbanToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('kanbanLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.querySelectorAll('.po-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].partNo='';data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});
   // When Part No changes, refresh Order Line No dropdown
-  document.querySelectorAll('.part-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});document.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',()=>{const action=btn.dataset.action,id=btn.dataset.id!=null?parseInt(btn.dataset.id):null,li=btn.dataset.li!=null?parseInt(btn.dataset.li):null;if(action==='view'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.page='view-order';render();}else if(action==='edit'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.orderWizStep=1;S.page='edit-order';render();}else if(action==='deleteOrder'){const ord=S.orders.find(o=>o.id===id);S.modal={title:'Delete Order',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(ord?.customerPONo)}</strong>?`,onConfirm:()=>{const delOrd=S.orders.find(o=>o.id===id);S.orders=S.orders.filter(o=>o.id!==id);if(delOrd?._spId)persist(()=>spDeleteOrder(delOrd._spId,delOrd._finSpId),'del order');render();}};render();}else if(action==='removeLine'){const data=collectOrderForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editing=data;S.openLine=Math.min(li,data.lines.length-1);render();}else if(action==='dupLine'){const data=collectOrderForm();const src=data.lines[li];if(src){const cp=cloneObj(src);cp.lineNo=data.lines.length+1;cp.lineStatus='Open';cp.shortCloseQty=0;cp.delivered=0;cp.inTransit=0;data.lines.push(cp);S.editing=data;S.openLine=data.lines.length-1;}render();}
+  document.querySelectorAll('.part-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});document.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',()=>{const action=btn.dataset.action,id=btn.dataset.id!=null?parseInt(btn.dataset.id):null,li=btn.dataset.li!=null?parseInt(btn.dataset.li):null;if(action==='view'){const ord=S.orders.find(o=>o.id===id);S.editing=cloneObj(ord);{const v=visOrderLines(ord);S.viewLines=v.length<ord.lines.length?v.map(x=>x.i):null;}S.page='view-order';render();}else if(action==='edit'){S.viewLines=null;S.editing=cloneObj(S.orders.find(o=>o.id===id));S.orderWizStep=1;S.page='edit-order';render();}else if(action==='deleteOrder'){const ord=S.orders.find(o=>o.id===id);S.modal={title:'Delete Order',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(ord?.customerPONo)}</strong>?`,onConfirm:()=>{const delOrd=S.orders.find(o=>o.id===id);S.orders=S.orders.filter(o=>o.id!==id);if(delOrd?._spId)persist(()=>spDeleteOrder(delOrd._spId,delOrd._finSpId),'del order');render();}};render();}else if(action==='removeLine'){const data=collectOrderForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editing=data;S.openLine=Math.min(li,data.lines.length-1);render();}else if(action==='dupLine'){const data=collectOrderForm();const src=data.lines[li];if(src){const cp=cloneObj(src);cp.lineNo=data.lines.length+1;cp.lineStatus='Open';cp.shortCloseQty=0;cp.delivered=0;cp.inTransit=0;data.lines.push(cp);S.editing=data;S.openLine=data.lines.length-1;}render();}
 else if(action==='cancelLine'){const data=collectOrderForm();const line=data.lines[li];const oldSt=line.lineStatus||'Open';line.lineStatus='Cancelled';S.editing=data;auditLog('order',data.id,data.customerPONo,'Cancelled',[{field:`Line ${li+1} (${line.partNo||'?'}) Line Status`,from:oldSt,to:'Cancelled'}]);render();}
 else if(action==='reopenLine'){if(!isAdmin())return;const data=collectOrderForm();const line=data.lines[li];line.lineStatus='Open';line.shortCloseQty=0;S.editing=data;auditLog('order',data.id,data.customerPONo,'Reopened',[{field:`Line ${li+1} (${line.partNo||'?'}) Line Status`,from:'Cancelled',to:'Open'}]);render();}
 else if(action==='cancelLine'){
@@ -3337,7 +3385,7 @@ else if(action==='reopenLine'){
   S.editing=data;
   auditLog('order',data.id,data.customerPONo,'Reopened',[{field:`Line ${li+1} (${line.partNo||'—'}) — Line Status`,from:'Cancelled',to:'Open'}]);
   render();
-}else if(action==='relinkOrderLine'){S.relinkOrderId=id;S.relinkOrderLineIdx=li;S.showOrderRelink=true;render();}else if(action==='viewShipment'){S.editingShipment=cloneObj(S.shipments.find(s=>s.id===id));S.page='view-shipment';render();}else if(action==='editShipment'){S.editingShipment=cloneObj(S.shipments.find(s=>s.id===id));S.shipWizStep=1;S.page='edit-shipment';render();}else if(action==='relinkShipment'){S.relinkShipId=id;S.showShipRelink=true;render();}else if(action==='deleteShipment'){const sh=S.shipments.find(s=>s.id===id);S.modal={title:'Delete Shipment',type:'danger',confirmLabel:'Yes, Delete',message:`Delete shipment <strong>${esc(sh?.shippingInvoiceNo)}</strong>? Order quantities will be re-synced.`,onConfirm:()=>{const delShip=S.shipments.find(s=>s.id===id);S.shipments=S.shipments.filter(s=>s.id!==id);if(delShip?._spId)persist(()=>spDeleteShipment(delShip._spId),'del shipment');syncShipmentsToOrders();render();}};render();}else if(action==='removeShipLine'){const data=collectShipmentForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editingShipment=data;render();}else if(action==='editUser'){S.userEdit=id;S.page='users';render();}
+}else if(action==='relinkOrderLine'){S.relinkOrderId=id;S.relinkOrderLineIdx=li;S.showOrderRelink=true;render();}else if(action==='viewShipment'){const shp=S.shipments.find(s=>s.id===id);S.editingShipment=cloneObj(shp);{const v=visShipLines(shp);S.viewLines=v.length<shp.lines.length?v.map(x=>x.i):null;}S.page='view-shipment';render();}else if(action==='editShipment'){S.viewLines=null;S.editingShipment=cloneObj(S.shipments.find(s=>s.id===id));S.shipWizStep=1;S.page='edit-shipment';render();}else if(action==='relinkShipment'){S.relinkShipId=id;S.showShipRelink=true;render();}else if(action==='deleteShipment'){const sh=S.shipments.find(s=>s.id===id);S.modal={title:'Delete Shipment',type:'danger',confirmLabel:'Yes, Delete',message:`Delete shipment <strong>${esc(sh?.shippingInvoiceNo)}</strong>? Order quantities will be re-synced.`,onConfirm:()=>{const delShip=S.shipments.find(s=>s.id===id);S.shipments=S.shipments.filter(s=>s.id!==id);if(delShip?._spId)persist(()=>spDeleteShipment(delShip._spId),'del shipment');syncShipmentsToOrders();render();}};render();}else if(action==='removeShipLine'){const data=collectShipmentForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editingShipment=data;render();}else if(action==='editUser'){S.userEdit=id;S.page='users';render();}
       else if(action==='deleteUser'){
         const usr=USERS.find(u=>u.id===id);
         S.modal={title:'Delete User',type:'danger',confirmLabel:'Yes, Delete',
@@ -3366,9 +3414,9 @@ document.addEventListener('click',async ev=>{
       t.disabled=true;t.textContent='Loading…';await loadMoreAudit();render();
     } else if(t.id==='saveListsBtn'){
       const lines=id=>[...new Set(document.getElementById(id).value.split('\n').map(x=>x.trim()).filter(Boolean))];
-      const loc=lines('setLoc'),sh=lines('setShip'),m=document.getElementById('listsMsg');
+      const loc=lines('setLoc'),sh=lines('setShip'),by=lines('setBuyers'),m=document.getElementById('listsMsg');
       if(!loc.length||!sh.length){m.textContent='Each list needs at least one item.';return;}
-      LOCATIONS.length=0;LOCATIONS.push(...loc);SHIP_TYPES.length=0;SHIP_TYPES.push(...sh);
+      LOCATIONS.length=0;LOCATIONS.push(...loc);SHIP_TYPES.length=0;SHIP_TYPES.push(...sh);BUYERS.length=0;BUYERS.push(...by);
       m.textContent='Saving…';await persist(()=>spSaveSettings(),'dropdown lists');m.textContent=SAVE.failed.length?'Not saved — see the red bar.':'Saved.';
     } else if(t.id==='rebuildColsBtn'){
       const m=document.getElementById('rebuildMsg');t.disabled=true;let n=0;const total=S.orders.length+S.shipments.length;
