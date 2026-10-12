@@ -144,10 +144,10 @@ h1,h2,h3,.sora{font-family:Inter,sans-serif}
   .wiz-shell{grid-template-columns:1fr !important}
   .wiz-summary{position:static !important}
   .wiz-step-label{display:none}
-  .grid3,.stats-grid,.fp-grid-4,.fp-grid-3,.fp-grid-2,.dash-grid-2{grid-template-columns:1fr 1fr !important}
+  .grid3,.grid4,.stats-grid,.fp-grid-4,.fp-grid-3,.fp-grid-2,.dash-grid-2{grid-template-columns:1fr 1fr !important}
   .audit-entry{grid-template-columns:1fr !important}
 }
-@media(max-width:480px){[style*="grid-template-columns"],.grid3,.stats-grid,.fp-grid-4,.fp-grid-3,.fp-grid-2,.dash-grid-2{grid-template-columns:1fr !important}}
+@media(max-width:480px){[style*="grid-template-columns"],.grid3,.grid4,.stats-grid,.fp-grid-4,.fp-grid-3,.fp-grid-2,.dash-grid-2{grid-template-columns:1fr !important}}
 
 /* ── TOPBAR ── */
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
@@ -599,6 +599,47 @@ b,strong,th{font-weight:600}
 }
 .grid3>*{min-width:0}
 .fg input,.fg select,.fg textarea{width:100%;min-width:0;max-width:100%}
+/* ── Order lines: one summary row per line, the open line shows every field ── */
+.ln-scroll{overflow-x:auto}
+.ln-wrap{min-width:760px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+:root{--actw:84px}
+@media(min-width:1501px){:root{--actw:176px}}
+.lncols{display:grid;grid-template-columns:34px minmax(110px,1.5fr) .6fr .75fr .75fr .8fr 1.05fr 1.05fr 1fr 1fr var(--actw) 18px;gap:10px;align-items:center}
+.ln-hd{padding:10px 14px;background:var(--surface-2);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+.ln-hd .r,.ln-sum .r{text-align:right}
+.ln-hd .at{font-style:normal;font-size:9px;background:#EEEAF8;color:#5B4B9E;border-radius:6px;padding:1px 5px;margin-left:3px;letter-spacing:.04em}
+.ln-sum{padding:10px 14px;cursor:pointer;font-size:13px;border-top:1px solid var(--border-soft)}
+.ln-hd+.ln .ln-sum{border-top:0}
+.ln-sum:hover{background:#F7F9FC}
+.ln.open{border-left:4px solid var(--accent);background:#F9FAFD}
+.ln.open .ln-sum{border-bottom:0}
+.ln.cx{opacity:.75}.ln.sc{background:var(--warn-l)}
+.ln-ic{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;background:#E4E9F1;color:var(--accent)}
+.ln-ic.ok{background:#E3F2EA;color:var(--ok)}.ln-ic.bad{background:#FDF3E3;color:var(--warn)}.ln-ic.cx{background:#EEE;color:#888}
+.ln-part{display:flex;flex-direction:column;min-width:0}.ln-part b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ln-part .sub{color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.warnt{color:var(--warn)}
+.ln-sum .good{color:var(--ok)}.ln-sum .tr{color:#A9741B}.ln-sum .blue{color:var(--accent)}
+.ln-sum>div{min-width:0}
+.ln-act{display:flex;gap:6px;justify-content:flex-end;white-space:nowrap}
+.ln-act .b{border:1px solid var(--border);background:#fff;border-radius:7px;padding:5px 9px;font:inherit;font-size:12px;color:var(--accent);cursor:pointer}
+.ln-act .b.x{color:#B4423A;border-color:#F1CFCB}
+.ln-chev{color:var(--muted);text-align:center}
+.ln .line-item{border:0;border-radius:0;margin:0;background:transparent;padding:4px 18px 18px 52px}
+.ln .li-actions{display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px}
+.ln .li-actions:empty{display:none}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.grid4>*{min-width:0}
+.ln-tot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px 26px;padding:12px 4px 0;font-size:13px;align-items:baseline}
+.ln-tot b{font-size:15px;font-variant-numeric:tabular-nums}
+.ln-tot .ln-ctx{margin-right:auto;color:var(--muted);font-size:12px}
+.wiz-shell.one{grid-template-columns:minmax(0,1fr)}
+@media(max-width:1500px){.ln-act .lbl{display:none}}
+@media(max-width:1000px){.lncols{grid-template-columns:30px minmax(110px,1.6fr) .6fr .9fr .9fr var(--actw) 18px}.c-opt{display:none}.ln-wrap{min-width:0}.ln-hd .c-dock,.ln-hd{font-size:10px}}
+@media(max-width:700px){.grid4{grid-template-columns:1fr 1fr}.ln .line-item{padding-left:14px}.ln-hd{display:none}.lncols{grid-template-columns:24px minmax(0,1fr) 40px 40px 14px;gap:6px}.ln-sum{padding:10px 8px}.line-items-wrap{padding:14px 10px}.wiz-nav{flex-wrap:wrap;gap:8px;justify-content:space-between}.ln-sum>div:nth-child(4),.ln-sum>div:nth-child(5),.ln-sum>div:nth-child(7),.ln-sum>div:nth-child(8),.ln-sum>div:nth-child(9),.ln-sum>div:nth-child(10),.ln-sum>div:nth-child(11){display:none}.ph-only{display:inline-flex !important}.ln-wrap{min-width:0}}
+.ph-only{display:none}
+.warnt{white-space:normal !important;overflow:visible !important;font-size:12.5px}
+@media(max-width:480px){.grid4{grid-template-columns:1fr}}
 /* panels that were bright blue */
 [style*="var(--info-l)"][style*="var(--accent-mid)"]{background:var(--surface) !important;border-color:var(--border) !important;color:var(--muted)}
 [style*="var(--info-l)"][style*="var(--accent-mid)"] b{color:var(--text)}
@@ -628,7 +669,7 @@ const FLOW_QUERY  = true;   // ON: the flow understands the "query" setting (FLO
 const USE_COLUMNS = true;   // ON: the SharePoint search columns exist and the flow writes them (FLOW_UPGRADE step 2).
 const HARDENED_FLOW = true;  // ON: the lockout and sign-out-on-change steps of docs/FLOW_HARDENING.md are in the flow
 const AI_IMPORT   = false;  // PO / shipment document import (needs an API key kept inside the flow)
-const APP_VERSION = '1.8.0';
+const APP_VERSION = '1.9.0';
 const PAGE_SIZE = 2500, AUDIT_PAGE = 200, HISTORY_MONTHS = 24;
 
 let SP_ENABLED=true;
@@ -853,7 +894,7 @@ async function spLoadAll(){
   const ships=shipRows.map(rowToRec).filter(x=>x.id!==undefined);
   S.shipments=ships;if(ships.length)S.nextShipId=Math.max(...ships.map(x=>x.id||0))+1;
   const custs=custRows.map(rowToRec).filter(x=>x.id!==undefined);
-  S.customers=custs;if(custs.length)S.nextCustId=Math.max(...custs.map(c=>c.id||0))+1;
+  S.customers=custs;sortMasters();if(custs.length)S.nextCustId=Math.max(...custs.map(c=>c.id||0))+1;
   const parts=partRows.map(rowToRec).filter(x=>x.id!==undefined);
   S.parts=parts;if(parts.length)S.nextPartId=Math.max(...parts.map(p=>p.id||0))+1;
   const users=userRows.map(rowToRec).filter(u=>u.id!==undefined&&u.email);
@@ -1160,6 +1201,7 @@ let S={page:'login',user:null,modal:null,nextUserId:5,userEdit:null,sidebarColla
   filters:{customers:[],shipmentTypes:[],poStatuses:[],partNos:[],orderDateFrom:'',orderDateTo:'',dockDateFrom:'',dockDateTo:'',shipDateFrom:'',shipDateTo:'',dueWindow:''},
   shipFilters:{customers:[],locations:[],deliveryStatuses:[],partNos:[],poNos:[],kanban:'',shipDateFrom:'',shipDateTo:'',deliveryDateFrom:'',deliveryDateTo:''},editing:null,editingShipment:null,search:'',shipSearch:'',filterOpen:false,shipFilterOpen:false,showOrderExport:false,showShipExport:false,showShipRelink:false,relinkShipId:null,showOrderRelink:false,relinkOrderId:null,relinkOrderLineIdx:null,customers:[{id:1,name:'Acme Corp',contact:'John Smith',email:'john@acme.com'},{id:2,name:'Zenith Industries',contact:'Rita Patel',email:'rita@zenith.com'},{id:3,name:'Pacific Traders',contact:'Sam Lee',email:'sam@pacific.com'},{id:4,name:'Delta Manufacturing',contact:'Neha Roy',email:'neha@delta.com'},{id:5,name:'Horizon Tech',contact:'Arjun Mehta',email:'arjun@horizon.com'}],nextCustId:6,parts:[{id:1,custId:1,partNo:'AC-001',desc:'Bracket Assembly'},{id:2,custId:1,partNo:'AC-002',desc:'Housing Unit'},{id:3,custId:2,partNo:'ZI-100',desc:'Gear Module'},{id:4,custId:3,partNo:'PT-010',desc:'Valve Body'},{id:5,custId:3,partNo:'PT-020',desc:'Seal Kit'},{id:6,custId:5,partNo:'HT-777',desc:'PCB Assembly'}],nextPartId:7,masterCustEdit:null,masterPartEdit:null,masterFilterCust:null,masterTab:'customers',orders:[{id:1,saved:true,customerName:'Acme Corp',orderDate:'2026-01-10',customerPONo:'PO-2026-001',blanketOrderNo:'BO-100',consignment:false,buyerName:'John Smith',lines:[{lineNo:1,partNo:'AC-001',poQty:100,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-03-28',usSalesOrder:'SO-5001',usQBPO:'QB-3001',additionalNotes:'',usRate:12.5,indiaRate:10,shipDate1:'2026-03-20',revisedShipDate:''}]},{id:2,saved:true,customerName:'Zenith Industries',orderDate:'2026-02-18',customerPONo:'PO-2026-002',blanketOrderNo:'BO-200',consignment:false,buyerName:'Rita Patel',lines:[{lineNo:1,partNo:'ZI-100',poQty:50,delivered:0,inTransit:0,shipmentType:'SAT Warehouse',inTransitDays:5,originalDockDate:'2026-04-10',usSalesOrder:'SO-5002',usQBPO:'QB-3002',additionalNotes:'',usRate:25,indiaRate:20,shipDate1:'',revisedShipDate:''}]},{id:3,saved:true,customerName:'Pacific Traders',orderDate:'2026-02-05',customerPONo:'PO-2026-003',blanketOrderNo:'BO-300',consignment:false,buyerName:'Sam Lee',lines:[{lineNo:1,partNo:'PT-010',poQty:200,delivered:0,inTransit:0,shipmentType:'Dropship',inTransitDays:10,originalDockDate:'2026-04-15',usSalesOrder:'SO-5003',usQBPO:'QB-3003',additionalNotes:'',usRate:8,indiaRate:6.5,shipDate1:'',revisedShipDate:''},{lineNo:2,partNo:'PT-020',poQty:80,delivered:0,inTransit:0,shipmentType:'Kan-Ban',inTransitDays:7,originalDockDate:'2026-04-20',usSalesOrder:'SO-5004',usQBPO:'QB-3003',additionalNotes:'',usRate:15,indiaRate:12,shipDate1:'',revisedShipDate:''}]}],nextOrderId:4,shipments:[{id:1,saved:true,shippingInvoiceNo:'SHIP-001',gstInvoiceNo:'GST-001',dateOfInvoice:'2026-03-15',dateOfShipping:'2026-03-16',transportMethod:'Air Freight',logistics:'DHL Express',trackingNo:'DHL123456789',customsHouseAgent:'CHA Global',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-001',partNo:'AC-001',orderLineNo:1,shippedQty:40,shippedTo:'Acme Corp',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-001',heatNo:'HT-A1'}]},{id:2,saved:true,shippingInvoiceNo:'SHIP-002',gstInvoiceNo:'GST-002',dateOfInvoice:'2026-03-20',dateOfShipping:'2026-03-21',transportMethod:'Sea Freight',logistics:'Maersk',trackingNo:'MAER987654',customsHouseAgent:'CHA Global',kanban:false,location:'SAT',lines:[{lineNo:1,customerPONo:'PO-2026-002',partNo:'ZI-100',orderLineNo:1,shippedQty:50,shippedTo:'Zenith Industries',deliveryStatus:'Delivered',deliveryDate:'2026-04-01',usInvoiceNo:'US-INV-002',heatNo:'HT-Z1'}]},{id:3,saved:true,shippingInvoiceNo:'SHIP-003',gstInvoiceNo:'GST-003',dateOfInvoice:'2026-03-25',dateOfShipping:'2026-03-26',transportMethod:'Air Freight',logistics:'FedEx',trackingNo:'FDX445566',customsHouseAgent:'CHA Express',kanban:true,location:'India',lines:[{lineNo:1,customerPONo:'PO-2026-003',partNo:'PT-010',orderLineNo:1,shippedQty:100,shippedTo:'Pacific Traders',deliveryStatus:'In Transit',deliveryDate:'',usInvoiceNo:'US-INV-003',heatNo:'HT-P1'}]}],nextShipId:4};
 const isAdmin=()=>S.user?.role==='Admin';const canEdit=()=>['Admin','Staff'].includes(S.user?.role);const canFin=()=>['Admin','Staff','Viewer2'].includes(S.user?.role);const roleLabel=r=>({Admin:'Administrator',Staff:'Staff',Viewer1:'Viewer Type 1',Viewer2:'Viewer Type 2'}[r]||r);const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');const today=()=>new Date().toISOString().split('T')[0];
+const money=n=>{const v=Math.round((+n||0)*100)/100;return(v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
 function fmtDate(iso){if(!iso)return'';const d=new Date(iso+'T00:00:00');if(isNaN(d))return'';return`${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;}
 function addDays(iso,n){if(!iso||isNaN(+n))return'';const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+(+n));return d.toISOString().split('T')[0];}
 function maxIso(a,b){if(!a&&!b)return'';if(!a)return b;if(!b)return a;return a>=b?a:b;}
@@ -1409,6 +1451,18 @@ function setupHTML(){return`<div style="max-width:560px;margin:60px auto;font-fa
 function bindSetup(){document.getElementById('suBtn').onclick=async()=>{const n=document.getElementById('suName').value.trim(),e=document.getElementById('suEmail').value.trim().toLowerCase(),p=document.getElementById('suPass').value,o=document.getElementById('suOut');if(!n||!e||!p){o.textContent='Fill all three fields.';return;}const json=JSON.stringify({id:1,name:n,email:e,passHash:await hashPw(e,p),role:'Admin'});o.innerHTML=`<b>Title</b> column:<pre style="background:#F1F5F9;padding:8px;border-radius:6px;white-space:pre-wrap;word-break:break-all">${esc(e)}</pre><b>POM_Data</b> column:<pre style="background:#F1F5F9;padding:8px;border-radius:6px;white-space:pre-wrap;word-break:break-all">${esc(json)}</pre>`;};}
 
 // ── Keep the scroll position and the cursor when the screen redraws (typing, Tab, dropdown changes) ──
+// Click a line summary to open it (only one is open); click the open one to close it. Values typed so far are kept.
+function openOrderLine(i){
+  if(S.page!=='view-order'&&S.page!=='edit-order'&&S.page!=='new-order')return;
+  if(S.page!=='view-order')S.editing=collectOrderForm();
+  S.openLine=(S.openLine===i)?-1:i;render();
+}
+// Customers A-Z; parts by customer, then part number (natural order: AC-2 before AC-10)
+const _nat=(a,b)=>String(a||'').localeCompare(String(b||''),undefined,{numeric:true,sensitivity:'base'});
+function sortMasters(){
+  if(Array.isArray(S.customers))S.customers.sort((a,b)=>_nat(a.name,b.name));
+  if(Array.isArray(S.parts)){const nm={};(S.customers||[]).forEach(c=>{nm[c.id]=c.name;});S.parts.sort((a,b)=>_nat(nm[a.custId],nm[b.custId])||_nat(a.partNo,b.partNo));}
+}
 let _vk='',_lastTab=null,_lastFocus=null,_lastBlurT=0,_lastDown=null,_lastKeyT=0;
 document.addEventListener('keydown',e=>{_lastKeyT=Date.now();if(e.key==='Tab')_lastTab={t:Date.now(),shift:e.shiftKey};},true);
 document.addEventListener('focusin',e=>{const k=_fieldKey(e.target);if(k)_lastFocus={k,t:Date.now()};},true);
@@ -1432,6 +1486,7 @@ function _renderOnce(){
   const tab=_lastTab&&Date.now()-_lastTab.t<500?_lastTab:null,clicked=_lastDown&&Date.now()-_lastDown.t<500;
   let fk=_fieldKey(ae);if(!fk&&ae===document.body&&_lastFocus&&(tab||clicked||Date.now()-_lastKeyT<500))fk=_lastFocus.k;
   const caret=ae&&fk&&_fieldKey(ae)&&ae.selectionStart!=null&&/^(text|search|tel|url|email|password)?$/.test(ae.type||'')?[ae.selectionStart,ae.selectionEnd]:null;
+  sortMasters();
   _renderCore();_vk=key;
   const restore=()=>{
     const m=document.querySelector('.main');if(sameView&&m)m.scrollTop=top;
@@ -2364,61 +2419,77 @@ function orderFormHTML(){
   function numFld(l,v,f,opts={}){return fld(l,v??0,f,opts);}
   function taFld(l,v,f){return`<div class="fg" style="grid-column:1/-1"><label>${l}</label><textarea ${ro?'readonly':''} ${f?`data-f="${esc(f)}"`:''} rows="2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;resize:vertical;outline:none">${esc(v||'')}</textarea></div>`;}
 
-  // ── LINE ITEMS HTML (all lines) ──
-  const linesHTML=(o.lines||[]).map((l,i)=>{
-    // Always use fresh delivered/inTransit from S.orders (not stale S.editing clone)
-    const liveOrder=S.orders.find(ord=>ord.id===o.id);
-    const liveLine=liveOrder?.lines?.find(ll=>ll.lineNo===l.lineNo);
-    const lForCalc=liveLine?{...l,delivered:liveLine.delivered||0,inTransit:liveLine.inTransit||0}:l;
-    const c=calcLine(lForCalc);
+  // ── LINE ITEMS: one summary row per line; the open line shows every field ──
+  const ordKey=String(o.id||'new');
+  if(S.openLineFor!==ordKey){S.openLineFor=ordKey;S.openLine=0;}
+  if(useWizard&&step===1)S.openLine=0;
+  const nLines=(o.lines||[]).length;
+  const openIdx=S.openLine===-1?-1:Math.min(Math.max(0,S.openLine||0),Math.max(0,nLines-1));
+  const partDesc=(cust,pn)=>{const p=S.parts.find(x=>x.partNo===pn&&(!cust||(S.customers.find(c=>c.id===x.custId)||{}).name===cust));return p?p.desc:'';};
+  const liveOrder=S.orders.find(ord=>ord.id===o.id);
+  const lineCalcs=(o.lines||[]).map(l=>{const liveLine=liveOrder?.lines?.find(ll=>ll.lineNo===l.lineNo);const lc=liveLine?{...l,delivered:liveLine.delivered||0,inTransit:liveLine.inTransit||0}:l;return{lc,c:calcLine(lc)};});
+  const rowsHTML=(o.lines||[]).map((l,i)=>{
+    const {lc,c}=lineCalcs[i];
     const custParts=partsForCust(o.customerName);
     const lineShips=linkedShipments.flatMap(sh=>sh.lines.filter(sl=>sl.partNo===l.partNo&&sl.customerPONo===o.customerPONo&&(sl.orderLineNo==null||sl.orderLineNo===l.lineNo)).map(sl=>({...sl,invoiceNo:sh.shippingInvoiceNo,dateOfShipping:sh.dateOfShipping})));
     const lineSt=l.lineStatus||'Open';
     const isLineCancelled=lineSt==='Cancelled';
     const isLineShortClosed=lineSt==='Short Closed';
-    return`<div class="line-item" data-li="${i}" style="${isLineCancelled?'opacity:.7;background:var(--danger-l);border-color:var(--danger-mid)':isLineShortClosed?'background:var(--warn-l);border-color:var(--warn-mid)':''}">
-      <div class="li-header">
-        <span class="li-no" style="display:flex;align-items:center;gap:8px">Line Item ${i+1}
-          ${isLineCancelled?'<span class="badge b-cancelled">Cancelled</span>':isLineShortClosed?'<span class="badge b-short-closed">Short Closed</span>':''}
-        </span>
-        <div style="display:flex;gap:6px;align-items:center">
-          ${isAdmin()&&isView?`<button class="btn btn-warn btn-sm" data-action="relinkOrderLine" data-id="${o.id}" data-li="${i}">Re-link Line</button>`:''}
-          ${canEdit()&&!ro&&!isLineCancelled?`<button class="btn btn-warn btn-sm" data-action="cancelLine" data-li="${i}">Cancel Line</button>`:''}
-          ${isAdmin()&&!ro&&isLineCancelled?`<button class="btn btn-success btn-sm" data-action="reopenLine" data-li="${i}">Reopen Line</button>`:''}
-          ${!ro&&!staffOrderPartial&&(o.lines.length>1)&&!isLineCancelled?`<button class="btn btn-danger btn-sm" data-action="removeLine" data-li="${i}">Remove</button>`:''}
-        </div>
+    const isOpen=i===openIdx;
+    const complete=!!String(l.partNo||'').trim()&&(+l.poQty||0)>0;
+    const canDup=!ro&&!staffOrderPartial;
+    const canRemove=!ro&&!staffOrderPartial&&nLines>1&&!isLineCancelled;
+    const stop='onclick="event.stopPropagation()"';
+    const badges=isLineCancelled?'<span class="badge b-cancelled">Cancelled</span>':isLineShortClosed?'<span class="badge b-short-closed">Short Closed</span>':'';
+    const sum=`<div class="ln-sum lncols" onclick="openOrderLine(${i})" title="Click to ${isOpen?'close':'open'} this line">
+      <div class="ln-ic ${isLineCancelled?'cx':complete?'ok':'bad'}">${isLineCancelled?'–':complete?'✓':'!'}</div>
+      <div class="ln-part">${complete||String(l.partNo||'').trim()?`<b>${esc(l.partNo)}</b><span class="sub">${esc(partDesc(o.customerName,l.partNo))}</span>`:`<b class="warnt">Line ${i+1}: choose a part${(+l.poQty||0)>0?'':' and a quantity'}</b>`}${badges}</div>
+      <div class="r"><b>${esc(l.poQty||0)}</b></div>
+      <div class="r c-opt good"><b>${esc(lc.delivered||0)}</b></div>
+      <div class="r c-opt tr"><b>${esc(lc.inTransit||0)}</b></div>
+      <div class="r blue"><b>${c.poOpenQty}</b></div>
+      <div class="c-dock">${fmtDate(l.originalDockDate)||'—'}</div>
+      <div class="c-opt">${fmtDate(c.revisedDockDate)||'—'}</div>
+      <div class="c-opt">${esc(l.usSalesOrder||'—')}</div>
+      <div class="c-opt">${esc(l.usQBPO||'—')}</div>
+      <div class="ln-act">${canDup?`<button class="b" ${stop} data-action="dupLine" data-li="${i}" title="Duplicate this line">⧉<span class="lbl"> Duplicate</span></button>`:''}${canRemove?`<button class="b x" ${stop} data-action="removeLine" data-li="${i}" title="Remove this line">✕</button>`:''}</div>
+      <div class="ln-chev">${isOpen?'▴':'▾'}</div>
+    </div>`;
+    const body=!isOpen?'':`<div class="line-item" data-li="${i}">
+      <div class="li-actions">
+        ${isAdmin()&&isView?`<button class="btn btn-warn btn-sm" data-action="relinkOrderLine" data-id="${o.id}" data-li="${i}">Re-link Line</button>`:''}
+        ${canEdit()&&!ro&&!isLineCancelled?`<button class="btn btn-warn btn-sm" data-action="cancelLine" data-li="${i}">Cancel Line</button>`:''}
+        ${isAdmin()&&!ro&&isLineCancelled?`<button class="btn btn-success btn-sm" data-action="reopenLine" data-li="${i}">Reopen Line</button>`:''}
+        ${canDup?`<button class="btn btn-secondary btn-sm ph-only" data-action="dupLine" data-li="${i}">⧉ Duplicate line</button>`:''}
+        ${canRemove?`<button class="btn btn-danger btn-sm ph-only" data-action="removeLine" data-li="${i}">Remove line</button>`:''}
       </div>
-      <div class="grid3">
+      <div class="li-sub" style="margin-top:0;border-top:0;padding-top:0"><div class="li-sub-title">Item</div>
+      <div class="grid4">
         ${fld('Line No',l.lineNo,`lines.${i}.lineNo`)}
-        ${(ro||staffOrderPartial)?fld('Part No',l.partNo,`lines.${i}.partNo`,{ro:true}):custParts.length>0?`<div class="fg"><label>Part No</label><select data-f="lines.${i}.partNo">${custParts.map(p=>`<option value="${esc(p.partNo)}"${p.partNo===l.partNo?' selected':''}>${esc(p.partNo)} - ${esc(p.desc)}</option>`).join('')}</select></div>`:`<div class="fg"><label>Part No</label><input value="${esc(l.partNo)}" data-f="lines.${i}.partNo" placeholder="Select customer first"></div>`}
+        ${(ro||staffOrderPartial)?fld('Part No',l.partNo,`lines.${i}.partNo`,{ro:true}):custParts.length>0?`<div class="fg"><label>Part No</label><select data-f="lines.${i}.partNo"><option value=""${l.partNo?'':' selected'}>— choose part —</option>${custParts.map(p=>`<option value="${esc(p.partNo)}"${p.partNo===l.partNo?' selected':''}>${esc(p.partNo)} - ${esc(p.desc)}</option>`).join('')}</select></div>`:`<div class="fg"><label>Part No</label><input value="${esc(l.partNo)}" data-f="lines.${i}.partNo" placeholder="Select customer first"></div>`}
         ${numFld('PO Qty',l.poQty,`lines.${i}.poQty`)}
-        <div class="fg"><label>Delivered <span class="sync-tag">AUTO</span></label><input readonly class="computed" value="${esc(l.delivered??0)}"></div>
+        <div class="fg"><label>Delivered <span class="sync-tag">AUTO</span></label><input readonly class="computed" value="${esc(lc.delivered??0)}"></div>
+        <div class="fg"><label>In Transit <span class="sync-tag">AUTO</span></label><input readonly class="computed" value="${esc(lc.inTransit??0)}"></div>
         ${fld('Open Qty (auto)',c.openQty,'',{computed:true,ro:true})}
-        <div class="fg"><label>In Transit <span class="sync-tag">AUTO</span></label><input readonly class="computed" value="${esc(l.inTransit??0)}"></div>
         ${fld('PO Open Qty (auto)',c.poOpenQty,'',{computed:true,ro:true})}
         ${fld('PO Status (auto)',c.poStatus,'',{computed:true,ro:true})}
         ${(()=>{
           if(isLineCancelled)return'';
           if(ro){
-            // view mode — show readonly if value is set
             if(!(+l.shortCloseQty>0))return'';
             return`<div class="fg"><label>Short Close Qty</label><input readonly class="computed" value="${esc(String(l.shortCloseQty||0))}" style="border-color:var(--warn)"></div>`;
           }
-          const maxSC=Math.max(0,(+l.poQty||0)-(+l.delivered||0));
+          const maxSC=Math.max(0,(+l.poQty||0)-(+lc.delivered||0));
           return`<div class="fg"><label style="display:flex;align-items:center;gap:6px">Short Close Qty <span style="font-size:11px;background:var(--warn-l);color:var(--warn);padding:1px 5px;border-radius:4px;font-weight:600">max ${maxSC}</span></label>
             <input type="number" min="0" max="${maxSC}" value="${esc(String(l.shortCloseQty||0))}" data-f="lines.${i}.shortCloseQty" style="border-color:${(+l.shortCloseQty>0)?'var(--warn)':'var(--border)'}">
-            ${+l.shortCloseQty>0?(()=>{const scq=+l.shortCloseQty||0;const pq=+l.poQty||0;const del=+l.delivered||0;const effQ=Math.max(0,pq-scq);const openAfter=Math.max(0,effQ-del);return`<div style="font-size:11px;color:var(--warn);margin-top:3px">On save: Effective Qty = ${effQ} · Open Qty → ${openAfter} pcs</div>`;})():''}
+            ${+l.shortCloseQty>0?(()=>{const scq=+l.shortCloseQty||0;const pq=+l.poQty||0;const del=+lc.delivered||0;const effQ=Math.max(0,pq-scq);const openAfter=Math.max(0,effQ-del);return`<div style="font-size:11px;color:var(--warn);margin-top:3px">On save: Effective Qty = ${effQ} · Open Qty → ${openAfter} pcs</div>`;})():''}
           </div>`;
         })()}
-      </div>
-      <div class="li-sub"><div class="li-sub-title">Shipment</div>
-        <div class="grid3">
+      </div></div>
+      <div class="li-sub"><div class="li-sub-title">Shipment and dates</div>
+        <div class="grid4">
           ${selFld('Shipment Type',l.shipmentType,SHIP_TYPES,`lines.${i}.shipmentType`)}
           ${numFld('In Transit Days',l.inTransitDays,`lines.${i}.inTransitDays`)}
-        </div>
-      </div>
-      <div class="li-sub"><div class="li-sub-title">Dates</div>
-        <div class="grid3">
           ${dateFld('On Dock Date (Original)',l.originalDockDate,`lines.${i}.originalDockDate`)}
           ${fld('Must Ship Date (auto)',fmtDate(c.mustShipDate),'',{computed:true,ro:true})}
           ${dateFld('Ship Date 1',l.shipDate1,`lines.${i}.shipDate1`)}
@@ -2426,24 +2497,31 @@ function orderFormHTML(){
           ${fld('On Dock Date Revised (auto)',fmtDate(c.revisedDockDate),'',{computed:true,ro:true})}
         </div>
       </div>
-      <div class="li-sub"><div class="li-sub-title">Order References</div>
-        <div class="grid3">
+      <div class="li-sub"><div class="li-sub-title">Order references and notes</div>
+        <div class="grid4">
           ${fld('US Sales Order #',l.usSalesOrder,`lines.${i}.usSalesOrder`)}
           ${fld('US QB PO #',l.usQBPO,`lines.${i}.usQBPO`)}
+          ${taFld('Additional Notes',l.additionalNotes,`lines.${i}.additionalNotes`)}
         </div>
-        <div class="grid3" style="margin-top:10px">${taFld('Additional Notes',l.additionalNotes,`lines.${i}.additionalNotes`)}</div>
       </div>
       <div class="li-sub"><div class="li-sub-title">Financials (USD)</div>
-        <div class="grid3">
+        <div class="grid4">
           ${canFin()?numFld('India Rate',l.indiaRate,`lines.${i}.indiaRate`):`<div class="fg"><label>India Rate</label><div class="no-access">No Access</div></div>`}
           ${canFin()?numFld('US Rate',l.usRate,`lines.${i}.usRate`):`<div class="fg"><label>US Rate</label><div class="no-access">No Access</div></div>`}
-          ${canFin()?fld('India Ext Sales (auto)',c.indiaExt.toFixed(2),'',{computed:true,ro:true}):`<div class="fg"><label>India Ext Sales</label><div class="no-access">No Access</div></div>`}
-          ${canFin()?fld('US Ext Sales (auto)',c.usExt.toFixed(2),'',{computed:true,ro:true}):`<div class="fg"><label>US Ext Sales</label><div class="no-access">No Access</div></div>`}
+          ${canFin()?fld('India Ext Sales (auto)',money(c.indiaExt),'',{computed:true,ro:true}):`<div class="fg"><label>India Ext Sales</label><div class="no-access">No Access</div></div>`}
+          ${canFin()?fld('US Ext Sales (auto)',money(c.usExt),'',{computed:true,ro:true}):`<div class="fg"><label>US Ext Sales</label><div class="no-access">No Access</div></div>`}
         </div>
       </div>
       ${lineShips.length?`<div class="shipment-link-panel"><div class="shipment-link-title">Linked Shipments</div>${lineShips.map(sl=>`<div class="shipment-link-row"><span style="font-family:Inter,sans-serif">${esc(sl.invoiceNo)}</span><span>${fmtDate(sl.dateOfShipping)}</span><span>Qty: <strong>${sl.shippedQty}</strong></span>${sl.orderLineNo!=null?`<span class="badge b-purple">Line ${sl.orderLineNo}</span>`:''}<span><span class="badge ${sl.deliveryStatus==='Delivered'?'b-green':'b-yellow'}">${sl.deliveryStatus}</span></span></div>`).join('')}</div>`:''}
     </div>`;
+    return`<div class="ln${isOpen?' open':''}${isLineCancelled?' cx':isLineShortClosed?' sc':''}" data-li="${i}">${sum}${body}</div>`;
   }).join('');
+  const linesHTML=`<div class="ln-scroll"><div class="ln-wrap">
+    <div class="ln-hd lncols"><span></span><span>Part No</span><span class="r">PO Qty</span><span class="r c-opt">Delivered <i class="at">AUTO</i></span><span class="r c-opt">In Transit <i class="at">AUTO</i></span><span class="r">PO Open Qty <i class="at">AUTO</i></span><span class="c-dock">On Dock Date (Original)</span><span class="c-opt">On Dock Date Revised <i class="at">AUTO</i></span><span class="c-opt">US Sales Order #</span><span class="c-opt">US QB PO #</span><span></span><span></span></div>
+    ${rowsHTML}</div></div>`;
+  const totQty=(o.lines||[]).reduce((t,l)=>t+(+l.poQty||0),0);
+  const totUS=(o.lines||[]).reduce((t,l)=>t+calcLine(l).usExt,0),totIN=(o.lines||[]).reduce((t,l)=>t+calcLine(l).indiaExt,0);
+  const lineTotalsHTML=`<div class="ln-tot"><span class="ln-ctx">${esc(o.customerName||'—')} · PO ${esc(o.customerPONo||'—')}</span><span>Lines <b>${nLines}</b></span><span>Total qty <b>${totQty.toLocaleString('en-US')}</b></span>${canFin()?`<span>US value <b>${money(totUS)}</b></span><span>India value <b>${money(totIN)}</b></span>`:''}</div>`;
 
   // ── SUMMARY PANEL (always visible in wizard) ──
   const fmt=n=>n>=1000000?`$${(n/1000000).toFixed(2)}M`:n>=1000?`$${(n/1000).toFixed(1)}K`:`$${Math.round(n)}`;
@@ -2476,8 +2554,8 @@ function orderFormHTML(){
     <div class="wiz-summary-row"><span class="wiz-summary-label">Open Qty</span><span class="wiz-summary-val">${totalOpenQty.toLocaleString()} pcs</span></div>
     ${canFin()?`<div class="wiz-summary-divider"></div>
     <div class="wiz-summary-section">Financials</div>
-    <div class="wiz-summary-row"><span class="wiz-summary-label">US Value</span><span class="wiz-summary-val" style="color:var(--accent)">${fmt(totalUSVal)}</span></div>
-    <div class="wiz-summary-row"><span class="wiz-summary-label">India Value ($)</span><span class="wiz-summary-val" style="color:#3E8E8A">${fmt(totalINVal)}</span></div>`:''}
+    <div class="wiz-summary-row"><span class="wiz-summary-label">US Value</span><span class="wiz-summary-val" style="color:var(--accent)">${money(totalUSVal)}</span></div>
+    <div class="wiz-summary-row"><span class="wiz-summary-label">India Value ($)</span><span class="wiz-summary-val" style="color:#3E8E8A">${money(totalINVal)}</span></div>`:''}
   </div>`:'';
 
   // ── STEP INDICATOR ──
@@ -2522,7 +2600,8 @@ function orderFormHTML(){
     <div class="line-items-wrap">
       <div class="sec-title" style="margin-bottom:14px">Line Items</div>
       <div id="linesContainer">${linesHTML}</div>
-      ${!ro&&!staffOrderPartial?`<button class="add-line" id="addLineBtn">+ Add Line Item</button>`:''}
+      ${!ro&&!staffOrderPartial?`<button class="add-line" id="addLineBtn">+ Add Line</button>`:''}
+      ${lineTotalsHTML}
     </div>
   </div>`;
 
@@ -2563,8 +2642,8 @@ function orderFormHTML(){
               <div class="review-field-row"><div class="review-field-label">Revised Ship Date</div><div class="review-field-val">${fmtDate(l.revisedShipDate)||'—'}</div></div>
               ${canFin()?`<div class="review-field-row"><div class="review-field-label">India Rate</div><div class="review-field-val">$${l.indiaRate||0}</div></div>`:''}
               ${canFin()?`<div class="review-field-row"><div class="review-field-label">US Rate</div><div class="review-field-val">$${l.usRate||0}</div></div>`:''}
-              ${canFin()?`<div class="review-field-row"><div class="review-field-label">India Ext</div><div class="review-field-val" style="color:#3E8E8A">${fmtI(c.indiaExt)}</div></div>`:''}
-              ${canFin()?`<div class="review-field-row"><div class="review-field-label">US Ext</div><div class="review-field-val" style="color:var(--accent)">${fmt(c.usExt)}</div></div>`:''}
+              ${canFin()?`<div class="review-field-row"><div class="review-field-label">India Ext</div><div class="review-field-val" style="color:#3E8E8A">${money(c.indiaExt)}</div></div>`:''}
+              ${canFin()?`<div class="review-field-row"><div class="review-field-label">US Ext</div><div class="review-field-val" style="color:var(--accent)">${money(c.usExt)}</div></div>`:''}
               ${+l.shortCloseQty>0?`<div class="review-field-row"><div class="review-field-label">Short Close Qty</div><div class="review-field-val" style="color:var(--warn)">${l.shortCloseQty}</div></div>`:''}
             </div>
           </div>`;
@@ -2620,7 +2699,7 @@ function orderFormHTML(){
           <div class="fg"><label>Consignment Order</label><div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="consignToggle" data-f="consignment" ${o.consignment?'checked':''} disabled><span class="toggle-track"></span></label><span class="toggle-lbl">${o.consignment?'Yes':'No'}</span></div></div>
           ${fld("Buyer's Name",o.buyerName,'buyerName')}
         </div></div>
-        <div class="line-items-wrap"><div class="sec-title" style="margin-bottom:14px">Line Items</div><div id="linesContainer">${linesHTML}</div></div>
+        <div class="line-items-wrap"><div class="sec-title" style="margin-bottom:14px">Line Items</div><div id="linesContainer">${linesHTML}</div>${lineTotalsHTML}</div>
       </div>
       ${o.id?auditPanelHTML('order',o.id):''}`;
   }
@@ -2632,14 +2711,14 @@ function orderFormHTML(){
   else if(step===3)stepContent=reviewSection;
 
   return`${banners}
-    <div class="wiz-shell">
+    <div class="wiz-shell${step===2?' one':''}">
       <div class="wiz-main">
         ${stepIndicator}
         ${stepContent}
         ${wizNav}
         ${o.id?auditPanelHTML('order',o.id):''}
       </div>
-      ${summaryPanel}
+      ${step===2?'':summaryPanel}
     </div>`;
 }
 
@@ -3215,7 +3294,7 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
   }
   S.editing=null;S.page='orders';render();}};render();});document.getElementById('wizNextBtn')?.addEventListener('click',()=>{S.editing=collectOrderForm();S.orderWizStep=Math.min(3,(S.orderWizStep||1)+1);render();});
   document.getElementById('wizPrevBtn')?.addEventListener('click',()=>{S.editing=collectOrderForm();S.orderWizStep=Math.max(1,(S.orderWizStep||1)-1);render();});
-  document.getElementById('addLineBtn')?.addEventListener('click',()=>{const data=collectOrderForm();data.lines.push(emptyLine(data.lines.length+1));S.editing=data;render();});document.getElementById('custNameSel')?.addEventListener('change',ev=>{const data=collectOrderForm();data.customerName=ev.target.value;data.lines=data.lines.map(l=>({...l,partNo:''}));S.editing=data;render();});document.querySelectorAll('[data-f^="lines."]').forEach(el=>{const sub=el.dataset.f.split('.')[2];if(['poQty','indiaRate','usRate','inTransitDays','shortCloseQty'].includes(sub)){el.addEventListener('change',()=>{S.editing=collectOrderForm();render();});}});document.getElementById('consignToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('togLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.getElementById('newShipFromOrderBtn')?.addEventListener('click',()=>{const o=S.editing;S.editingShipment={lines:[{...emptyShipLine(1),customerPONo:o.customerPONo||'',shippedTo:o.customerName||''}],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page='new-shipment';render();});document.getElementById('relinkAllOrderLinesBtn')?.addEventListener('click',ev=>{const btn=ev.target.closest('[data-id]');const id=parseInt(btn?.dataset.id||ev.target.dataset.id);S.relinkOrderId=id;S.relinkOrderLineIdx=null;S.showOrderRelink=true;render();});document.getElementById('backShipBtn')?.addEventListener('click',()=>{S.page='shipments';S.editingShipment=null;S.shipWizStep=1;render();});document.getElementById('saveShipBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();if(!data.shippingInvoiceNo){notice('Shipping Invoice No is required.','warn');return;}S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save shipment <strong>${esc(data.shippingInvoiceNo)}</strong>? This will auto-update Delivered & In Transit on linked order lines.${overShipWarning(data)}`,onConfirm:()=>{
+  document.getElementById('addLineBtn')?.addEventListener('click',()=>{const data=collectOrderForm();data.lines.push(emptyLine(data.lines.length+1));S.editing=data;S.openLine=data.lines.length-1;render();});document.getElementById('custNameSel')?.addEventListener('change',ev=>{const data=collectOrderForm();data.customerName=ev.target.value;data.lines=data.lines.map(l=>({...l,partNo:''}));S.editing=data;render();});document.querySelectorAll('[data-f^="lines."]').forEach(el=>{const sub=el.dataset.f.split('.')[2];if(['poQty','indiaRate','usRate','inTransitDays','shortCloseQty','originalDockDate','shipDate1','revisedShipDate','usSalesOrder','usQBPO','partNo','shipmentType'].includes(sub)){el.addEventListener('change',()=>{S.editing=collectOrderForm();render();});}});document.getElementById('consignToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('togLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.getElementById('newShipFromOrderBtn')?.addEventListener('click',()=>{const o=S.editing;S.editingShipment={lines:[{...emptyShipLine(1),customerPONo:o.customerPONo||'',shippedTo:o.customerName||''}],kanban:false,location:'India',dateOfInvoice:today(),dateOfShipping:today()};S.shipWizStep=1;S.page='new-shipment';render();});document.getElementById('relinkAllOrderLinesBtn')?.addEventListener('click',ev=>{const btn=ev.target.closest('[data-id]');const id=parseInt(btn?.dataset.id||ev.target.dataset.id);S.relinkOrderId=id;S.relinkOrderLineIdx=null;S.showOrderRelink=true;render();});document.getElementById('backShipBtn')?.addEventListener('click',()=>{S.page='shipments';S.editingShipment=null;S.shipWizStep=1;render();});document.getElementById('saveShipBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();if(!data.shippingInvoiceNo){notice('Shipping Invoice No is required.','warn');return;}S.modal={title:'Confirm Save',type:'warn',confirmLabel:'Confirm & Save',message:`Save shipment <strong>${esc(data.shippingInvoiceNo)}</strong>? This will auto-update Delivered & In Transit on linked order lines.${overShipWarning(data)}`,onConfirm:()=>{
   data.saved=true;
   if(S.page==='new-shipment'){
     data.id=S.nextShipId++;S.shipments.push(data);
@@ -3235,7 +3314,7 @@ function bindApp(){document.querySelectorAll('[data-nav]').forEach(el=>{el.addEv
   document.getElementById('shipWizPrevBtn')?.addEventListener('click',()=>{S.editingShipment=collectShipmentForm();S.shipWizStep=Math.max(1,(S.shipWizStep||1)-1);render();});
   document.getElementById('addShipLineBtn')?.addEventListener('click',()=>{const data=collectShipmentForm();data.lines.push(emptyShipLine(data.lines.length+1));S.editingShipment=data;render();});document.getElementById('kanbanToggle')?.addEventListener('change',ev=>{const lbl=document.getElementById('kanbanLbl');if(lbl)lbl.textContent=ev.target.checked?'Yes':'No';});document.querySelectorAll('.po-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].partNo='';data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});
   // When Part No changes, refresh Order Line No dropdown
-  document.querySelectorAll('.part-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});document.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',()=>{const action=btn.dataset.action,id=btn.dataset.id!=null?parseInt(btn.dataset.id):null,li=btn.dataset.li!=null?parseInt(btn.dataset.li):null;if(action==='view'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.page='view-order';render();}else if(action==='edit'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.orderWizStep=1;S.page='edit-order';render();}else if(action==='deleteOrder'){const ord=S.orders.find(o=>o.id===id);S.modal={title:'Delete Order',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(ord?.customerPONo)}</strong>?`,onConfirm:()=>{const delOrd=S.orders.find(o=>o.id===id);S.orders=S.orders.filter(o=>o.id!==id);if(delOrd?._spId)persist(()=>spDeleteOrder(delOrd._spId,delOrd._finSpId),'del order');render();}};render();}else if(action==='removeLine'){const data=collectOrderForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editing=data;render();}
+  document.querySelectorAll('.part-sel').forEach(sel=>{sel.addEventListener('change',ev=>{const data=collectShipmentForm();const li=parseInt(sel.dataset.li);data.lines[li].orderLineNo=null;S.editingShipment=data;render();});});document.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',()=>{const action=btn.dataset.action,id=btn.dataset.id!=null?parseInt(btn.dataset.id):null,li=btn.dataset.li!=null?parseInt(btn.dataset.li):null;if(action==='view'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.page='view-order';render();}else if(action==='edit'){S.editing=cloneObj(S.orders.find(o=>o.id===id));S.orderWizStep=1;S.page='edit-order';render();}else if(action==='deleteOrder'){const ord=S.orders.find(o=>o.id===id);S.modal={title:'Delete Order',type:'danger',confirmLabel:'Yes, Delete',message:`Delete <strong>${esc(ord?.customerPONo)}</strong>?`,onConfirm:()=>{const delOrd=S.orders.find(o=>o.id===id);S.orders=S.orders.filter(o=>o.id!==id);if(delOrd?._spId)persist(()=>spDeleteOrder(delOrd._spId,delOrd._finSpId),'del order');render();}};render();}else if(action==='removeLine'){const data=collectOrderForm();data.lines.splice(li,1);data.lines.forEach((l,i)=>l.lineNo=i+1);S.editing=data;S.openLine=Math.min(li,data.lines.length-1);render();}else if(action==='dupLine'){const data=collectOrderForm();const src=data.lines[li];if(src){const cp=cloneObj(src);cp.lineNo=data.lines.length+1;cp.lineStatus='Open';cp.shortCloseQty=0;cp.delivered=0;cp.inTransit=0;data.lines.push(cp);S.editing=data;S.openLine=data.lines.length-1;}render();}
 else if(action==='cancelLine'){const data=collectOrderForm();const line=data.lines[li];const oldSt=line.lineStatus||'Open';line.lineStatus='Cancelled';S.editing=data;auditLog('order',data.id,data.customerPONo,'Cancelled',[{field:`Line ${li+1} (${line.partNo||'?'}) Line Status`,from:oldSt,to:'Cancelled'}]);render();}
 else if(action==='reopenLine'){if(!isAdmin())return;const data=collectOrderForm();const line=data.lines[li];line.lineStatus='Open';line.shortCloseQty=0;S.editing=data;auditLog('order',data.id,data.customerPONo,'Reopened',[{field:`Line ${li+1} (${line.partNo||'?'}) Line Status`,from:'Cancelled',to:'Open'}]);render();}
 else if(action==='cancelLine'){
